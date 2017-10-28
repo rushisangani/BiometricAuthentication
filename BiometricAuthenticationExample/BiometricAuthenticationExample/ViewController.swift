@@ -44,7 +44,7 @@ class ViewController: UIViewController {
                 return
             }
                 
-                // show alternatives on fallback button clicked
+            // show alternatives on fallback button clicked
             else if error == .fallback {
                 
                 // here we're entering username and password
