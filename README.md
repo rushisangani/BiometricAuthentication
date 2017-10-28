@@ -36,9 +36,7 @@ BioMetricAuthenticator.authenticateWithBioMetrics(reason: "", success: {
     print(error.message())
 }
 ```
-- When reason specified as empty - default will be used based on the device.
-- Ex. for iPhone X - Confirm your face to authenticate.
-- For other devices - Confirm your fingerprint to authenticate.
+- When reason specified as empty - default will be used based on the device. Ex. for iPhone X - "Confirm your face to authenticate.",  For other devices - "Confirm your fingerprint to authenticate."
 
 - Alternatively you can check before authentication by:
 ```swift
@@ -84,7 +82,7 @@ BioMetricAuthenticator.authenticateWithBioMetrics(reason: "Biometric Authenticat
 
 ### BiometryLockedout
 - When biometry authentication is locked out after multiple failed attempts. You can unlock it by passcode authentication.
--Provide your own passcode authentication reason here, default will be used if not provided.
+- Provide your own passcode authentication reason here, default will be used if not provided.
 
 ```swift
 BioMetricAuthenticator.authenticateWithPasscode(reason: "", success: {
@@ -97,24 +95,24 @@ BioMetricAuthenticator.authenticateWithPasscode(reason: "", success: {
 ### Error Handling
 - There are various cases when biometric authentication can be failed.
 
-1. fallback
+1. **fallback**
     - Called when user clicks on provided fallback button.
-2. biometryNotEnrolled
+2. **biometryNotEnrolled**
     - Called when no fingerprints or face is registered with the device.
     - You can show message to register a new face or fingerprint here.
     - Default message can be shown if not provided.
-3. canceledByUser
+3. **canceledByUser**
     - Called when authentication canceled by user.
-4. canceledBySystem
+4. **canceledBySystem**
     - Called when authentication canceled by system when app goes into background or any other reason.
-5. passcodeNotSet
+5. **passcodeNotSet**
     - Called when device passcode is not set and trying to use biometry authentication.
     - We can ask user to set device passcode here by opening Settings Application.
-6. failed
+6. **failed**
     - Called when multiple failed attempts made by user.
     - You can show error message to user here.
     - Default message can be shown if not provided.
-7. biometryLockedout
+7. **biometryLockedout**
     - Called when more than 5 failed attempts made using biometric authentication. This will locked your biometry system.
     - You'll restrict user when this error is occured.
     - Aleternatively you can ask user to enter device passcode to unlock biometry.
