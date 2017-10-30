@@ -2,6 +2,12 @@
 Use Apple FaceID or TouchID authentication in your app using BiometricAuthentication.
 It's very simple and easy to use that handles Touch ID and Face ID authentication based on the device.
 
+**Note:** - Face ID authentication requires user's persmission to be add in info.plist.
+```swift
+<key>NSFaceIDUsageDescription</key>
+<string>This app requires Face ID permission to authenticate using Face recognition.</string>
+```
+
 ## Features
 
 - Works with Apple Face ID (iPhone X) and other Touch ID having devices.
