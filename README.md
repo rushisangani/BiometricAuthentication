@@ -48,7 +48,9 @@ BioMetricAuthenticator.authenticateWithBioMetrics(reason: "", success: {
 ```
 - When reason specified as empty - default will be used based on the device. Ex. for iPhone X - **"Confirm your face to authenticate."**,  For other devices - **"Confirm your fingerprint to authenticate."**
 
-- Alternatively you can check before authentication by:
+- Alternatively you can check before authentication by following.
+- This will check that if device supports Touch ID or Face ID authentication and your app can use that as of now.
+
 ```swift
 if BioMetricAuthenticator.canAuthenticate() {
 
@@ -111,7 +113,7 @@ BioMetricAuthenticator.authenticateWithPasscode(reason: "", success: {
 2. **biometryNotEnrolled**
     - Called when no fingerprints or face is registered with the device.
     - You can show message to register a new face or fingerprint here.
-    - Default message can be shown if not provided.
+    - Default message will be shown if not provided.
 3. **canceledByUser**
     - Called when authentication canceled by user.
 4. **canceledBySystem**
