@@ -48,8 +48,9 @@ BioMetricAuthenticator.authenticateWithBioMetrics(reason: "", success: {
 ```
 - When reason specified as empty - default will be used based on the device. Ex. for iPhone X - **"Confirm your face to authenticate."**,  For other devices - **"Confirm your fingerprint to authenticate."**
 
-- Alternatively you can check before authentication by following.
-- This will check that if device supports Touch ID or Face ID authentication and your app can use that as of now.
+### Can Authenticate with biometric
+
+- Alternatively you can check before authentication by following. This will check that if device supports Touch ID or Face ID authentication and your app can use that as of now.
 
 ```swift
 if BioMetricAuthenticator.canAuthenticate() {
