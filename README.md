@@ -8,6 +8,10 @@ It's very simple and easy to use that handles Touch ID and Face ID authenticatio
 <string>This app requires Face ID permission to authenticate using Face recognition.</string>
 ```
 
+![Alt text](/Images/image1.png?raw=true "Authenticate")
+![Alt text](/Images/image2.png?raw=true "Fallback title")
+![Alt text](/Images/image3.png?raw=true "Locked out")
+
 ## Features
 
 - Works with Apple Face ID (iPhone X) and other Touch ID having devices.
@@ -42,9 +46,7 @@ BioMetricAuthenticator.authenticateWithBioMetrics(reason: "", success: {
     print(error.message())
 }
 ```
-![Alt text](/Images/image1.png?raw=true "Authenticate")
-
-- When reason specified as empty - default will be used based on the device. Ex. for iPhone X - "Confirm your face to authenticate.",  For other devices - "Confirm your fingerprint to authenticate."
+- When reason specified as empty - default will be used based on the device. Ex. for iPhone X - **"Confirm your face to authenticate."**,  For other devices - **"Confirm your fingerprint to authenticate."**
 
 - Alternatively you can check before authentication by:
 ```swift
@@ -87,7 +89,6 @@ BioMetricAuthenticator.authenticateWithBioMetrics(reason: "Biometric Authenticat
     }
 }
 ```
-![Alt text](/Images/image2.png?raw=true "Fallback title")
 
 ### BiometryLockedout
 - When biometry authentication is locked out after multiple failed attempts. You can unlock it by passcode authentication.
@@ -101,7 +102,6 @@ BioMetricAuthenticator.authenticateWithPasscode(reason: "", success: {
     print(error.message())
 }
 ```
-![Alt text](/Images/image3.png?raw=true "Authenticate")
 
 ### Error Handling
 - There are various cases when biometric authentication can be failed.
