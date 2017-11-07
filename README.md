@@ -42,6 +42,8 @@ BioMetricAuthenticator.authenticateWithBioMetrics(reason: "", success: {
     print(error.message())
 }
 ```
+![Alt text](/Images/image1.png?raw=true "Authenticate")
+
 - When reason specified as empty - default will be used based on the device. Ex. for iPhone X - "Confirm your face to authenticate.",  For other devices - "Confirm your fingerprint to authenticate."
 
 - Alternatively you can check before authentication by:
@@ -72,7 +74,7 @@ if BioMetricAuthenticator.shared.faceIDAvailable() {
 - Default reason is empty, which will hide fallback button.
 
 ```swift
-BioMetricAuthenticator.authenticateWithBioMetrics(reason: "Biometric Authentication", fallbackTitle: "Use Credentails", success: {
+BioMetricAuthenticator.authenticateWithBioMetrics(reason: "Biometric Authentication", fallbackTitle: "Enter Credentails", success: {
 
     // authentication successful
 
@@ -85,6 +87,7 @@ BioMetricAuthenticator.authenticateWithBioMetrics(reason: "Biometric Authenticat
     }
 }
 ```
+![Alt text](/Images/image2.png?raw=true "Fallback title")
 
 ### BiometryLockedout
 - When biometry authentication is locked out after multiple failed attempts. You can unlock it by passcode authentication.
@@ -98,6 +101,8 @@ BioMetricAuthenticator.authenticateWithPasscode(reason: "", success: {
     print(error.message())
 }
 ```
+![Alt text](/Images/image3.png?raw=true "Authenticate")
+
 ### Error Handling
 - There are various cases when biometric authentication can be failed.
 
