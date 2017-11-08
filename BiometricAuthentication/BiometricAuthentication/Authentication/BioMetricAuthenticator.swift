@@ -54,7 +54,11 @@ public extension BioMetricAuthenticator {
         
         let context = LAContext()
         context.localizedFallbackTitle = fallbackTitle
-        context.localizedCancelTitle = cancelTitle
+        
+        // cancel button title
+        if #available(iOS 10.0, *) {
+            context.localizedCancelTitle = cancelTitle
+        }
         
         // authenticate
         BioMetricAuthenticator.shared.evaluate(policy: LAPolicy.deviceOwnerAuthenticationWithBiometrics, with: context, reason: reasonString, success: successBlock, failure: failureBlock)
@@ -65,7 +69,11 @@ public extension BioMetricAuthenticator {
         let reasonString = reason.isEmpty ? BioMetricAuthenticator.shared.defaultPasscodeAuthenticationReason() : reason
         
         let context = LAContext()
-        context.localizedCancelTitle = cancelTitle
+        
+        // cancel button title
+        if #available(iOS 10.0, *) {
+            context.localizedCancelTitle = cancelTitle
+        }
         
         // authenticate
         BioMetricAuthenticator.shared.evaluate(policy: LAPolicy.deviceOwnerAuthentication, with: context, reason: reasonString, success: successBlock, failure: failureBlock)
@@ -74,7 +82,8 @@ public extension BioMetricAuthenticator {
     /// checks if face id is avaiable on device
     public func faceIDAvailable() -> Bool {
         if #available(iOS 11.0, *) {
-            return (LAContext().biometryType == .typeFaceID)
+            let context = LAContext()
+            return (context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: nil) && context.biometryType == .typeFaceID)
         }
         return false
     }

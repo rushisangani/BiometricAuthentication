@@ -20,8 +20,8 @@ It's very simple and easy to use that handles Touch ID and Face ID authenticatio
 
 ## Requirements
 
-- iOS 10.0+
-- Xcode 8.3+
+- iOS 9.0+
+- Xcode 8+
 - Swift 3.0+
 
 ## Installation
