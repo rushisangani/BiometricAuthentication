@@ -106,10 +106,12 @@ extension BioMetricAuthenticator {
     func evaluate(policy: LAPolicy, with context: LAContext, reason: String, success successBlock:@escaping AuthenticationSuccess, failure failureBlock:@escaping AuthenticationFailure) {
         
         context.evaluatePolicy(policy, localizedReason: reason) { (success, err) in
-            if success { successBlock() }
-            else {
-                let errorType = AuthenticationError(error: err as! LAError)
-                failureBlock(errorType)
+            DispatchQueue.main.async {
+                if success { successBlock() }
+                else {
+                    let errorType = AuthenticationError(error: err as! LAError)
+                    failureBlock(errorType)
+                }
             }
         }
     }
