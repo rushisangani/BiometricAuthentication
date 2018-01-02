@@ -76,7 +76,12 @@ public extension BioMetricAuthenticator {
         }
         
         // authenticate
-        BioMetricAuthenticator.shared.evaluate(policy: LAPolicy.deviceOwnerAuthentication, with: context, reason: reasonString, success: successBlock, failure: failureBlock)
+        if #available(iOS 9.0, *) {
+            BioMetricAuthenticator.shared.evaluate(policy: LAPolicy.deviceOwnerAuthentication, with: context, reason: reasonString, success: successBlock, failure: failureBlock)
+        } else {
+            // Fallback on earlier versions
+            BioMetricAuthenticator.shared.evaluate(policy: LAPolicy.deviceOwnerAuthenticationWithBiometrics, with: context, reason: reasonString, success: successBlock, failure: failureBlock)
+        }
     }
     
     /// checks if face id is avaiable on device
