@@ -35,7 +35,7 @@ pod 'BiometricAuthentication'
 ### Carthage
 
 ```ruby
-github 'rushisangani/BiometricAuthentication'
+github "rushisangani/BiometricAuthentication"
 ```
 
 ## Usage
