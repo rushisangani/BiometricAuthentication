@@ -32,6 +32,12 @@ It's very simple and easy to use that handles Touch ID and Face ID authenticatio
 pod 'BiometricAuthentication'
 ```
 
+### Carthage
+
+```ruby
+pod '[a relative link](BiometricAuthentication)'
+```
+
 ## Usage
 
 ### Authenticate with biometric

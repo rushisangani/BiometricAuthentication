@@ -70,4 +70,9 @@ public enum AuthenticationError {
             return authentication.faceIDAvailable() ? kDefaultFaceIDAuthenticationFailedReason : kDefaultTouchIDAuthenticationFailedReason
         }
     }
+  
+    // get an localized error message based on type
+    public func localizedMessage() -> String {
+        return NSLocalizedString(message(), comment: "")
+    }
 }
