@@ -1,0 +1,31 @@
+/* 
+  Localizable.strings
+  BiometricAuthentication
+
+  Created by Everton Cunha on 02/01/18.
+  Copyright © 2018 Rushi Sangani. All rights reserved.
+*/
+
+"Confirm your fingerprint to authenticate." = "Confirme a sua impressão digital para autenticar.";
+
+"Touch ID is locked now, because of too many failed attempts. Enter passcode to unlock Touch ID." = "Touch ID está bloqueado devido a muitas tentativas falhas. Insira o código de acesso para desbloquear o Touch ID.";
+
+/// Error Messages Touch ID
+"Please set device passcode to use Touch ID for authentication." = "Defina a senha do dispositivo para usar o Touch ID para autenticação.";
+
+"There are no fingerprints enrolled in the device. Please go to Device Settings -> Touch ID and Passcode and enroll your fingerprints." = "Não há impressões digitais cadastradas no dispositivo. Em seu dispositivo, vá para Ajustes -> Touch ID e Código e adicione suas impressões digitais.";
+
+"Touch ID does not recognize your fingerprint. Please try again with your enrolled fingerprint." = "Touch ID não reconhece sua impressão digital. Tente novamente com a sua impressão digital cadastrada.";
+
+/// ****************  Face ID  ****************** ///
+
+"Confirm your face to authenticate." = "Confirme o seu rosto para autenticar.";
+
+"Face ID is locked now, because of too many failed attempts. Enter passcode to unlock Face ID." = "O Face ID está bloqueado devido a muitas tentativas falhas. Digite a senha para desbloquear Face ID.";
+
+/// Error Messages Face ID
+"Please set device passcode to use Face ID for authentication." = "Defina a senha do dispositivo para usar o Face ID para autenticação.";
+
+"There are no face enrolled in the device. Please go to Device Settings -> Face ID and Passcode and enroll your face." = "Não há rosto cadastrado no dispositivo. Em seu dispositivo, vá para Ajustes -> Face ID e Código e cadastre seu rosto.";
+
+"Face ID does not recognize your face. Please try again with your enrolled face." = "O Face ID não reconhece seu rosto. Tente novamente com o rosto cadastrado.";

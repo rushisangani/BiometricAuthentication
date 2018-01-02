@@ -53,18 +53,18 @@ class ViewController: UIViewController {
                 
                 // No biometry enrolled in this device, ask user to register fingerprint or face
             else if error == .biometryNotEnrolled {
-                self?.showGotoSettingsAlert(message: error.message())
+                self?.showGotoSettingsAlert(message: error.localizedMessage())
             }
                 
                 // Biometry is locked out now, because there were too many failed attempts.
                 // Need to enter device passcode to unlock.
             else if error == .biometryLockedout {
-                self?.showPasscodeAuthentication(message: error.message())
+                self?.showPasscodeAuthentication(message: error.localizedMessage())
             }
                 
                 // show error on authentication failed
             else {
-                self?.showErrorAlert(message: error.message())
+                self?.showErrorAlert(message: error.localizedMessage())
             }
         })
     }
@@ -77,7 +77,7 @@ class ViewController: UIViewController {
             self.showLoginSucessAlert()
             
         }) { (error) in
-            print(error.message())
+            print(error.localizedMessage())
         }
     }
 }
