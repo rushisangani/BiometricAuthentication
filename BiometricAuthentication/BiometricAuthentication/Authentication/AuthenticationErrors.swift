@@ -73,7 +73,6 @@ public enum AuthenticationError {
   
     // get an localized error message based on type
     public func localizedMessage() -> String {
-        let english = message()
-        return NSLocalizedString(english, tableName: nil, bundle: Bundle(for:BioMetricAuthenticator.self), value: english, comment: "")
+        return NSLocalizedString(message(), comment: "")
     }
 }
