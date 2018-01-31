@@ -39,9 +39,15 @@ class ViewController: UIViewController {
             
         }, failure: { [weak self] (error) in
             
+            
             // do nothing on canceled
             if error == .canceledByUser || error == .canceledBySystem {
                 return
+            }
+            
+            // device does not support biometric (face id or touch id) authentication
+            else if error == .biometryNotAvailable {
+                self?.showErrorAlert(message: error.message())
             }
                 
             // show alternatives on fallback button clicked

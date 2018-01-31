@@ -15,6 +15,7 @@ public typealias AuthenticationSuccess = (() -> ())
 /// failure block
 public typealias AuthenticationFailure = ((AuthenticationError) -> ())
 
+let kBiometryNotAvailableReason = "Biometric authentication is not available for this device."
 
 /// ****************  Touch ID  ****************** ///
 
@@ -23,7 +24,7 @@ let kTouchIdPasscodeAuthenticationReason = "Touch ID is locked now, because of t
 
 /// Error Messages Touch ID
 let kSetPasscodeToUseTouchID = "Please set device passcode to use Touch ID for authentication."
-let kNoFingerprintEnrolled = "There are no fingerprints enrolled in the device. Please go to Device Settings -> Touch ID and Passcode and enroll your fingerprints."
+let kNoFingerprintEnrolled = "There are no fingerprints enrolled in the device. Please go to Device Settings -> Touch ID & Passcode and enroll your fingerprints."
 let kDefaultTouchIDAuthenticationFailedReason = "Touch ID does not recognize your fingerprint. Please try again with your enrolled fingerprint."
 
 /// ****************  Face ID  ****************** ///
@@ -33,5 +34,5 @@ let kFaceIdPasscodeAuthenticationReason = "Face ID is locked now, because of too
 
 /// Error Messages Face ID
 let kSetPasscodeToUseFaceID = "Please set device passcode to use Face ID for authentication."
-let kNoFaceIdentityEnrolled = "There are no face enrolled in the device. Please go to Device Settings -> Face ID and Passcode and enroll your face."
+let kNoFaceIdentityEnrolled = "There is no face enrolled in the device. Please go to Device Settings -> Face ID & Passcode and enroll your face."
 let kDefaultFaceIDAuthenticationFailedReason = "Face ID does not recognize your face. Please try again with your enrolled face."

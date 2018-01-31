@@ -136,6 +136,8 @@ BioMetricAuthenticator.authenticateWithPasscode(reason: "", success: {
     - Called when more than 5 failed attempts made using biometric authentication. This will locked your biometry system.
     - You'll restrict user when this error is occured.
     - Aleternatively you can ask user to enter device passcode to unlock biometry.
+8. **biometryNotAvailable**
+    - Called when device does not support Face ID or Touch ID authentication.
 
 ### Example
 
@@ -149,6 +151,11 @@ BioMetricAuthenticator.authenticateWithBioMetrics(reason: "", success: {
     // do nothing on canceled
     if error == .canceledByUser || error == .canceledBySystem {
         return
+    }
+    
+    // device does not support biometric (face id or touch id) authentication
+    else if error == .biometryNotAvailable {
+        self?.showErrorAlert(message: error.message())
     }
 
     // show alternatives on fallback button clicked

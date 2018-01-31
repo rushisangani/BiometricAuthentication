@@ -29,7 +29,7 @@ import LocalAuthentication
 /// Authentication Errors
 public enum AuthenticationError {
     
-    case failed, canceledByUser, fallback, canceledBySystem, passcodeNotSet, biometryNotEnrolled, biometryLockedout, other
+    case failed, canceledByUser, fallback, canceledBySystem, passcodeNotSet, biometryNotAvailable, biometryNotEnrolled, biometryLockedout, other
     
     public static func `init`(error: LAError) -> AuthenticationError {
         switch Int32(error.errorCode) {
@@ -44,6 +44,8 @@ public enum AuthenticationError {
             return canceledBySystem
         case kLAErrorPasscodeNotSet:
             return passcodeNotSet
+        case kLAErrorBiometryNotAvailable:
+            return biometryNotAvailable
         case kLAErrorBiometryNotEnrolled:
             return biometryNotEnrolled
         case kLAErrorBiometryLockout:
@@ -62,6 +64,8 @@ public enum AuthenticationError {
             return ""
         case .passcodeNotSet:
             return authentication.faceIDAvailable() ? kSetPasscodeToUseFaceID : kSetPasscodeToUseTouchID
+        case .biometryNotAvailable:
+            return kBiometryNotAvailableReason
         case .biometryNotEnrolled:
             return authentication.faceIDAvailable() ? kNoFaceIdentityEnrolled : kNoFingerprintEnrolled
         case .biometryLockedout:
