@@ -114,7 +114,7 @@ extension BioMetricAuthenticator {
             DispatchQueue.main.async {
                 if success { successBlock() }
                 else {
-                    let errorType = AuthenticationError.init(error: err as! LAError)
+                    let errorType = AuthenticationError.`init`(error: err as! LAError)
                     failureBlock(errorType)
                 }
             }
