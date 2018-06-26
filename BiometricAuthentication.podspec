@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
 s.name         = "BiometricAuthentication"
-s.version      = "1.0.6"
+s.version      = "2.0"
 s.summary      = "Use Apple FaceID or TouchID authentication in your app using BiometricAuthentication."
 s.description  = <<-DESC
 BiometricAuthentication is very simple and easy to use that handles Touch ID and Face ID authentication based on the device.
