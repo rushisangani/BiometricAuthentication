@@ -31,7 +31,7 @@ public enum AuthenticationError {
     
     case failed, canceledByUser, fallback, canceledBySystem, passcodeNotSet, biometryNotAvailable, biometryNotEnrolled, biometryLockedout, other
     
-    public static func `init`(error: LAError) -> AuthenticationError {
+    public static func initWithError(_ error: LAError) -> AuthenticationError {
         switch Int32(error.errorCode) {
             
         case kLAErrorAuthenticationFailed:
