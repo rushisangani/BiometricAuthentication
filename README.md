@@ -8,9 +8,9 @@ It's very simple and easy to use that handles Touch ID and Face ID authenticatio
 <string>This app requires Face ID permission to authenticate using Face recognition.</string>
 ```
 
-![Alt text](/Images/image1.png?raw=true "Authenticate")
-![Alt text](/Images/image2.png?raw=true "Fallback title")
-![Alt text](/Images/image3.png?raw=true "Locked out")
+![Alt text](https://raw.githubusercontent.com/rushisangani/BiometricAuthentication/master/Images/image1.png "Authenticate")
+![Alt text](https://raw.githubusercontent.com/rushisangani/BiometricAuthentication/master/Images/image2.png "Fallback title")
+![Alt text](https://raw.githubusercontent.com/rushisangani/BiometricAuthentication/master/Images/image3.png "Locked out")
 
 ## Features
 
