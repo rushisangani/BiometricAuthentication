@@ -3,7 +3,7 @@
 //  BiometricAuthenticationExample
 //
 //  Created by Rushi on 28/10/17.
-//  Copyright © 2017 Rushi Sangani. All rights reserved.
+//  Copyright © 2018 Rushi Sangani. All rights reserved.
 //
 
 import UIKit
@@ -116,10 +116,15 @@ extension ViewController {
             // open settings
             let url = URL(string: "App-Prefs:root=TOUCHID_PASSCODE")
             if UIApplication.shared.canOpenURL(url!) {
-                UIApplication.shared.open(url!, options: [:], completionHandler: nil)
+                UIApplication.shared.open(url!, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: nil)
             }
             
         })
         present(alertController, animated: true, completion: nil)
     }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
 }

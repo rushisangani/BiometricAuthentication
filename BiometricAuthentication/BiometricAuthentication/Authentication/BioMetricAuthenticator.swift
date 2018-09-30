@@ -2,7 +2,7 @@
 //  BioMetricAuthenticator.swift
 //  BiometricAuthentication
 //
-//  Copyright (c) 2017 Rushi Sangani
+//  Copyright (c) 2018 Rushi Sangani
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ open class BioMetricAuthenticator: NSObject {
 
 public extension BioMetricAuthenticator {
     
-    /// checks if TouchID or FaceID is available on the device.
+    /// checks if biometric authentication can be performed currently on the device.
     class func canAuthenticate() -> Bool {
         
         var isBiometricAuthenticationAvailable = false
@@ -50,6 +50,8 @@ public extension BioMetricAuthenticator {
     
     /// Check for biometric authentication
     class func authenticateWithBioMetrics(reason: String, fallbackTitle: String? = "", cancelTitle: String? = "", success successBlock:@escaping AuthenticationSuccess, failure failureBlock:@escaping AuthenticationFailure) {
+       
+        // reason
         let reasonString = reason.isEmpty ? BioMetricAuthenticator.shared.defaultBiometricAuthenticationReason() : reason
         
         let context = LAContext()
@@ -66,6 +68,8 @@ public extension BioMetricAuthenticator {
     
     /// Check for device passcode authentication
     class func authenticateWithPasscode(reason: String, cancelTitle: String? = "", success successBlock:@escaping AuthenticationSuccess, failure failureBlock:@escaping AuthenticationFailure) {
+        
+        // reason
         let reasonString = reason.isEmpty ? BioMetricAuthenticator.shared.defaultPasscodeAuthenticationReason() : reason
         
         let context = LAContext()
@@ -84,13 +88,25 @@ public extension BioMetricAuthenticator {
         }
     }
     
-    /// checks if face id is avaiable on device
+    /// checks if device supports face id authentication
     public func faceIDAvailable() -> Bool {
         if #available(iOS 11.0, *) {
             let context = LAContext()
-            return (context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthentication, error: nil) && context.biometryType == .faceID)
+            return (context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: nil) && context.biometryType == .faceID)
         }
         return false
+    }
+    
+    /// checks if device supports touch id authentication
+    public func touchIDAvailable() -> Bool {
+        let context = LAContext()
+        var error: NSError?
+        
+        let canEvaluate = context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: &error)
+        if #available(iOS 11.0, *) {
+            return canEvaluate && context.biometryType == .touchID
+        }
+        return canEvaluate
     }
 }
 
@@ -98,17 +114,17 @@ public extension BioMetricAuthenticator {
 extension BioMetricAuthenticator {
 
     /// get authentication reason to show while authentication
-    func defaultBiometricAuthenticationReason() -> String {
+    private func defaultBiometricAuthenticationReason() -> String {
         return faceIDAvailable() ? kFaceIdAuthenticationReason : kTouchIdAuthenticationReason
     }
     
     /// get passcode authentication reason to show while entering device passcode after multiple failed attempts.
-    func defaultPasscodeAuthenticationReason() -> String {
+    private func defaultPasscodeAuthenticationReason() -> String {
         return faceIDAvailable() ? kFaceIdPasscodeAuthenticationReason : kTouchIdPasscodeAuthenticationReason
     }
     
     /// evaluate policy
-    func evaluate(policy: LAPolicy, with context: LAContext, reason: String, success successBlock:@escaping AuthenticationSuccess, failure failureBlock:@escaping AuthenticationFailure) {
+    private func evaluate(policy: LAPolicy, with context: LAContext, reason: String, success successBlock:@escaping AuthenticationSuccess, failure failureBlock:@escaping AuthenticationFailure) {
         
         context.evaluatePolicy(policy, localizedReason: reason) { (success, err) in
             DispatchQueue.main.async {

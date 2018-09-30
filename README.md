@@ -8,13 +8,17 @@ It's very simple and easy to use that handles Touch ID and Face ID authenticatio
 <string>This app requires Face ID permission to authenticate using Face recognition.</string>
 ```
 
+### What's New in version 2.1
+- Check if TouchID  or FaceID authentication is available for iOS device.
+
+
 ![Alt text](https://raw.githubusercontent.com/rushisangani/BiometricAuthentication/master/Images/image1.png "Authenticate")
 ![Alt text](https://raw.githubusercontent.com/rushisangani/BiometricAuthentication/master/Images/image2.png "Fallback title")
 ![Alt text](https://raw.githubusercontent.com/rushisangani/BiometricAuthentication/master/Images/image3.png "Locked out")
 
 ## Features
 
-- Works with Apple Face ID (iPhone X) and other Touch ID having devices.
+- Works with Apple Face ID (iPhone X, Xs, XR, XsMax) and other Touch ID having devices.
 - Predefined error handling when recognition fails.
 - Automatic authentication with device passcode on multiple failed attempts.
 
@@ -76,6 +80,13 @@ if BioMetricAuthenticator.canAuthenticate() {
 ```swift
 if BioMetricAuthenticator.shared.faceIDAvailable() {
     // device supports face id recognition.
+}
+```
+### Check for Touch ID
+- Check if device supports touch id authentication or not.
+```swift
+if BioMetricAuthenticator.shared.touchIDAvailable() {
+// device supports touch id authentication
 }
 ```
 

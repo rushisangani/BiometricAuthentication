@@ -2,7 +2,7 @@
 //  UIAlertControllerExtension.swift
 //  BiometricAuthenticationExample
 //
-//  Copyright (c) 2017 Rushi Sangani
+//  Copyright (c) 2018 Rushi Sangani
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -33,11 +33,11 @@ typealias AlertViewController = UIAlertController
 struct AlertAction {
     
     var title: String = ""
-    var type: UIAlertActionStyle? = .default
+    var type: UIAlertAction.Style? = .default
     var enable: Bool? = true
     var selected: Bool? = false
     
-    init(title: String, type: UIAlertActionStyle? = .default, enable: Bool? = true, selected: Bool? = false) {
+    init(title: String, type: UIAlertAction.Style? = .default, enable: Bool? = true, selected: Bool? = false) {
         self.title = title
         self.type = type
         self.enable = enable
@@ -48,7 +48,7 @@ struct AlertAction {
 extension UIViewController {
     
     // Show Alert or Action sheet
-    func getAlertViewController(type: UIAlertControllerStyle, with title: String?, message: String?, actions:[AlertAction], showCancel: Bool , actionHandler:@escaping ((_ title: String) -> ())) -> AlertViewController {
+    func getAlertViewController(type: UIAlertController.Style, with title: String?, message: String?, actions:[AlertAction], showCancel: Bool , actionHandler:@escaping ((_ title: String) -> ())) -> AlertViewController {
         
         let alertController = UIAlertController(title: title, message: message, preferredStyle: type)
         
