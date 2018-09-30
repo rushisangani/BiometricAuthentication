@@ -9,7 +9,7 @@ It's very simple and easy to use that handles Touch ID and Face ID authenticatio
 ```
 
 ### What's New in version 2.1
-- Check if TouchID  or FaceID authentication is available for iOS device.
+- Check if **TouchID**  or **FaceID** authentication is available for iOS device.
 
 
 ![Alt text](https://raw.githubusercontent.com/rushisangani/BiometricAuthentication/master/Images/image1.png "Authenticate")
@@ -86,7 +86,7 @@ if BioMetricAuthenticator.shared.faceIDAvailable() {
 - Check if device supports touch id authentication or not.
 ```swift
 if BioMetricAuthenticator.shared.touchIDAvailable() {
-// device supports touch id authentication
+    // device supports touch id authentication
 }
 ```
 
