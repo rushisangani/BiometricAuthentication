@@ -27,7 +27,7 @@ import Foundation
 import LocalAuthentication
 
 /// Authentication Errors
-public enum AuthenticationError {
+public enum AuthenticationError: Error {
     
     case failed, canceledByUser, fallback, canceledBySystem, passcodeNotSet, biometryNotAvailable, biometryNotEnrolled, biometryLockedout, other
     
