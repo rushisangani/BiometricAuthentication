@@ -9,7 +9,7 @@ It's very simple and easy to use that handles Touch ID and Face ID authenticatio
 ```
 
 ### What's new in version 2.2
-- Set **AllowableReuseDuration** (in seconds) to bypass the authentication when user has just unlocked the device with biometric.
+- Set **AllowableReuseDuration** (in seconds) to auto authenticate when user has just unlocked the device with biometric.
 - This is pretty useful when app comes to foreground or device is just unlocked by the user and you want to authenticate with biometrics.
 ```swift
 
