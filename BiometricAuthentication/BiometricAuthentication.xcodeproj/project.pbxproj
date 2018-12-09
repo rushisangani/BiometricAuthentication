@@ -115,7 +115,7 @@
 		D8DB659D1FA46C7E00351903 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0940;
+				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = "Rushi Sangani";
 				TargetAttributes = {
 					D8DB65A51FA46C7E00351903 = {
@@ -286,7 +286,7 @@
 		D8DB65AF1FA46C7E00351903 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = M9KRH522ST;

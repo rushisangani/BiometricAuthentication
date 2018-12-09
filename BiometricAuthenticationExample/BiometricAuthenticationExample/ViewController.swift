@@ -31,6 +31,9 @@ class ViewController: UIViewController {
     
     @IBAction func biometricAuthenticationClicked(_ sender: Any) {
         
+        // Set AllowableReuseDuration in seconds to bypass the authentication when user has just unlocked the device with biometric
+        BioMetricAuthenticator.shared.allowableReuseDuration = 60
+        
         // start authentication
         BioMetricAuthenticator.authenticateWithBioMetrics(reason: "", success: {
             

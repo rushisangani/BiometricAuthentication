@@ -8,7 +8,16 @@ It's very simple and easy to use that handles Touch ID and Face ID authenticatio
 <string>This app requires Face ID permission to authenticate using Face recognition.</string>
 ```
 
-### What's New in version 2.1
+### What's new in version 2.2
+- Set **AllowableReuseDuration** (in seconds) to bypass the authentication when user has just unlocked the device with biometric.
+- This is pretty useful when app comes to foreground or device is just unlocked by the user and you want to authenticate with biometrics.
+```swift
+
+// set this before calling authenticateWithBioMetrics method
+BioMetricAuthenticator.shared.allowableReuseDuration = 60   //(iOS 9.0 or later)
+```
+
+### Version 2.1
 - Check if **TouchID**  or **FaceID** authentication is available for iOS device.
 
 

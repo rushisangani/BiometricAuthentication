@@ -30,6 +30,24 @@ open class BioMetricAuthenticator: NSObject {
 
     // MARK: - Singleton
     public static let shared = BioMetricAuthenticator()
+    
+    // MARK: - Private
+    private override init() {}
+    private lazy var context: LAContext? = {
+        return LAContext()
+    }()
+
+    // MARK: - Public
+    public var allowableReuseDuration: TimeInterval? = nil {
+        didSet {
+            guard let duration = allowableReuseDuration else {
+                return
+            }
+            if #available(iOS 9.0, *) {
+                self.context?.touchIDAuthenticationAllowableReuseDuration = duration
+            }
+        }
+    }
 }
 
 // MARK:- Public
@@ -54,7 +72,13 @@ public extension BioMetricAuthenticator {
         // reason
         let reasonString = reason.isEmpty ? BioMetricAuthenticator.shared.defaultBiometricAuthenticationReason() : reason
         
-        let context = LAContext()
+        // context
+        var context: LAContext!
+        if BioMetricAuthenticator.shared.isReuseDurationSet() {
+            context = BioMetricAuthenticator.shared.context
+        }else {
+            context = LAContext()
+        }
         context.localizedFallbackTitle = fallbackTitle
         
         // cancel button title
@@ -121,6 +145,14 @@ extension BioMetricAuthenticator {
     /// get passcode authentication reason to show while entering device passcode after multiple failed attempts.
     private func defaultPasscodeAuthenticationReason() -> String {
         return faceIDAvailable() ? kFaceIdPasscodeAuthenticationReason : kTouchIdPasscodeAuthenticationReason
+    }
+    
+    /// checks if allowableReuseDuration is set
+    private func isReuseDurationSet() -> Bool {
+        guard allowableReuseDuration != nil else {
+            return false
+        }
+        return true
     }
     
     /// evaluate policy
