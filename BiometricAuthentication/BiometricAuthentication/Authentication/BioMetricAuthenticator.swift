@@ -55,7 +55,7 @@ open class BioMetricAuthenticator: NSObject {
 public extension BioMetricAuthenticator {
     
     /// checks if biometric authentication can be performed currently on the device.
-    class func canAuthenticate() -> Bool {
+    class func canAuthenticate() -> CheckAuthenticateAbleResult<AuthenticationError> {
         
         var isBiometricAuthenticationAvailable = false
         var error: NSError? = nil
@@ -63,7 +63,16 @@ public extension BioMetricAuthenticator {
         if LAContext().canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: &error) {
             isBiometricAuthenticationAvailable = (error == nil)
         }
-        return isBiometricAuthenticationAvailable
+        
+        if isBiometricAuthenticationAvailable,
+            error == nil {
+            return CheckAuthenticateAbleResult.success
+        } else if let err = error{
+            let authenticationError = AuthenticationError.initWithError(err as! LAError)
+            return CheckAuthenticateAbleResult.failure(authenticationError)
+        } else {
+            return CheckAuthenticateAbleResult.failure(nil)
+        }
     }
     
     /// Check for biometric authentication
@@ -87,7 +96,12 @@ public extension BioMetricAuthenticator {
         }
         
         // authenticate
-        BioMetricAuthenticator.shared.evaluate(policy: LAPolicy.deviceOwnerAuthenticationWithBiometrics, with: context, reason: reasonString, success: successBlock, failure: failureBlock)
+        if #available(iOS 9.0, *) {
+            BioMetricAuthenticator.shared.evaluate(policy: LAPolicy.deviceOwnerAuthentication, with: context, reason: reasonString, success: successBlock, failure: failureBlock)
+        } else {
+            // Fallback on earlier versions
+            BioMetricAuthenticator.shared.evaluate(policy: LAPolicy.deviceOwnerAuthenticationWithBiometrics, with: context, reason: reasonString, success: successBlock, failure: failureBlock)
+        }
     }
     
     /// Check for device passcode authentication
