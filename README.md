@@ -11,9 +11,10 @@ It's very simple and easy to use that handles Touch ID and Face ID authenticatio
 ### What's new in version 2.2
 - Set **AllowableReuseDuration** (in seconds) to auto authenticate when user has just unlocked the device with biometric.
 - This is pretty useful when app comes to foreground or device is just unlocked by the user and you want to authenticate with biometrics.
+- If you don't want to reuse the recently used authentication then simply skip this step.
 ```swift
 
-// set this before calling authenticateWithBioMetrics method
+// set this before calling authenticateWithBioMetrics method (optional)
 BioMetricAuthenticator.shared.allowableReuseDuration = 60   //(iOS 9.0 or later)
 ```
 
