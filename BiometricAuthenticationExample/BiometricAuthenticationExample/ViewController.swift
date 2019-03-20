@@ -34,6 +34,28 @@ class ViewController: UIViewController {
         // Set AllowableReuseDuration in seconds to bypass the authentication when user has just unlocked the device with biometric
         BioMetricAuthenticator.shared.allowableReuseDuration = 60
         
+        // check biometric authentication usable
+        let url = BioMetricAuthenticator.canAuthenticate()
+        switch url {
+            
+        case .failure(let error):
+            if error == .biometryNotAvailable {
+                showErrorAlert(message: "Biometry is not available on the device or disabled in settings.")
+            } else if error == .biometryNotEnrolled {
+                showErrorAlert(message: "The user has no enrolled biometric identities.")
+            } else if error == .biometryLockedout {
+                showErrorAlert(message: "Biometry is locked because there were too many failed attempts.")
+            } else {
+                showErrorAlert(message: "unkown error")
+            }
+        case .success:
+            startAuthentication()
+        
+        }
+
+    }
+    
+    func startAuthentication() {
         // start authentication
         BioMetricAuthenticator.authenticateWithBioMetrics(reason: "", success: {
             
