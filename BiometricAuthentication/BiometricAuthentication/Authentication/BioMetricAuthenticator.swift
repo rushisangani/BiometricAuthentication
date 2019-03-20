@@ -114,7 +114,7 @@ public extension BioMetricAuthenticator {
     
     /// checks if device supports face id authentication
     public func faceIDAvailable() -> Bool {
-        if #available(iOS 11.0, *) {
+        if #available(iOS 11.0.1, *) {
             let context = LAContext()
             return (context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: nil) && context.biometryType == .faceID)
         }
