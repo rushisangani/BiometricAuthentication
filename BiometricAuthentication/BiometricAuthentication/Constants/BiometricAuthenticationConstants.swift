@@ -9,12 +9,6 @@
 import Foundation
 import LocalAuthentication
 
-/// success block
-public typealias AuthenticationSuccess = (() -> ())
-
-/// failure block
-public typealias AuthenticationFailure = ((AuthenticationError) -> ())
-
 let kBiometryNotAvailableReason = "Biometric authentication is not available for this device."
 
 /// ****************  Touch ID  ****************** ///
