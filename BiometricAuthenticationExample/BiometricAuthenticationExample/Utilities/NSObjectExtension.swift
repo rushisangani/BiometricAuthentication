@@ -35,12 +35,12 @@ public extension NSObject {
     }
     
     /// set associated object
-    @objc public func setAssociated(object: Any) {
+    @objc func setAssociated(object: Any) {
         objc_setAssociatedObject(self, &AssociatedKeys.descriptiveName, object, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
     
     /// get associated object
-    @objc public func associatedObject() -> Any? {
+    @objc func associatedObject() -> Any? {
         return objc_getAssociatedObject(self, &AssociatedKeys.descriptiveName)
     }
 }
