@@ -116,7 +116,7 @@ extension ViewController {
             if buttonText == CancelTitle { return }
             
             // open settings
-            let url = URL(string: "App-Prefs:root=TOUCHID_PASSCODE")
+            let url = URL(string: UIApplication.openSettingsURLString)
             if UIApplication.shared.canOpenURL(url!) {
                 UIApplication.shared.open(url!, options: [:])
             }
