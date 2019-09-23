@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
 s.name         = "BiometricAuthentication"
-s.version      = "3.0"
+s.version      = "3.1.1"
 
 s.summary      = "Use Apple FaceID or TouchID authentication in your app using BiometricAuthentication."
 
@@ -15,13 +15,13 @@ s.screenshots  = "https://raw.githubusercontent.com/rushisangani/BiometricAuthen
 s.license      = { :type => "MIT", :file => "LICENSE" }
 
 s.author       = { "Rushi Sangani" => "rushisangani@gmail.com" }
-s.source       = { :git => "https://github.com/rushisangani/BiometricAuthentication.git", :tag => s.version }
+s.source       = { :git => "https://github.com/rushisangani/BiometricAuthentication.git", :tag => "v#{s.version}" }
 
 s.ios.deployment_target = '8.0'
 s.source_files = "BiometricAuthentication/**/*.swift"
 
 s.requires_arc = true
-s.pod_target_xcconfig = { "SWIFT_VERSION" => "5.0" }
+s.swift_version = "5.0"
 
 end
 
