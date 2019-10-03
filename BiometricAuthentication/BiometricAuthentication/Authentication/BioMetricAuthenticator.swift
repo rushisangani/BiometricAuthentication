@@ -26,10 +26,10 @@
 import UIKit
 import LocalAuthentication
 
-open class BioMetricAuthenticator: NSObject {
+@objc open class BioMetricAuthenticator: NSObject {
 
     // MARK: - Singleton
-    public static let shared = BioMetricAuthenticator()
+    @objc public static let shared = BioMetricAuthenticator()
     
     // MARK: - Private
     private override init() {}
@@ -52,10 +52,15 @@ open class BioMetricAuthenticator: NSObject {
 
 // MARK:- Public
 
-public extension BioMetricAuthenticator {
+@objc public protocol BioMetricAuthenticatorController {
+    func biometricResultOK() -> Void;
+    func biometricError(error: AuthenticationErrorOBJC) -> Void;
+}
+
+@objc public extension BioMetricAuthenticator {
     
     /// checks if biometric authentication can be performed currently on the device.
-    class func canAuthenticate() -> Bool {
+    @objc class func canAuthenticate() -> Bool {
         
         var isBiometricAuthenticationAvailable = false
         var error: NSError? = nil
@@ -67,11 +72,25 @@ public extension BioMetricAuthenticator {
     }
     
     /// Check for biometric authentication
-    class func authenticateWithBioMetrics(reason: String, fallbackTitle: String? = "", cancelTitle: String? = "", completion: @escaping (Result<Bool, AuthenticationError>) -> Void) {
+    @nonobjc class func authenticateWithBioMetrics(reason: String, fallbackTitle: String? = "", cancelTitle: String? = "", completion: @escaping (Result<Bool, AuthenticationError>) -> Void) {
         
-        // reason
         let reasonString = reason.isEmpty ? BioMetricAuthenticator.shared.defaultBiometricAuthenticationReason() : reason
+        let context = getContext(reason: reason, fallbackTitle: fallbackTitle, cancelTitle: cancelTitle);
         
+        // authenticate
+        BioMetricAuthenticator.shared.evaluate(policy: .deviceOwnerAuthenticationWithBiometrics, with: context, reason: reasonString, completion: completion)
+    }
+    
+    @objc class func authenticateWithBioMetrics(reason: String, fallbackTitle: String? = "", cancelTitle: String? = "", completion: BioMetricAuthenticatorController) {
+        
+        let reasonString = reason.isEmpty ? BioMetricAuthenticator.shared.defaultBiometricAuthenticationReason() : reason
+        let context = getContext(reason: reason, fallbackTitle: fallbackTitle, cancelTitle: cancelTitle);
+        
+        // authenticate
+        BioMetricAuthenticator.shared.evaluate(policy: .deviceOwnerAuthenticationWithBiometrics, with: context, reason: reasonString, completion: completion)
+    }
+    
+    class func getContext(reason: String, fallbackTitle: String? = "", cancelTitle: String? = "") -> LAContext{
         // context
         var context: LAContext!
         if BioMetricAuthenticator.shared.isReuseDurationSet() {
@@ -86,12 +105,33 @@ public extension BioMetricAuthenticator {
             context.localizedCancelTitle = cancelTitle
         }
         
-        // authenticate
-        BioMetricAuthenticator.shared.evaluate(policy: .deviceOwnerAuthenticationWithBiometrics, with: context, reason: reasonString, completion: completion)
+        return context;
     }
     
     /// Check for device passcode authentication
-    class func authenticateWithPasscode(reason: String, cancelTitle: String? = "", completion: @escaping (Result<Bool, AuthenticationError>) -> ()) {
+    @nonobjc class func authenticateWithPasscode(reason: String, cancelTitle: String? = "", completion: @escaping (Result<Bool, AuthenticationError>) -> ()) {
+        
+        // reason
+        let reasonString = reason.isEmpty ? BioMetricAuthenticator.shared.defaultPasscodeAuthenticationReason() : reason
+        
+        let context = LAContext()
+        
+        // cancel button title
+        if #available(iOS 10.0, *) {
+            context.localizedCancelTitle = cancelTitle
+        }
+        
+        // authenticate
+        if #available(iOS 9.0, *) {
+            BioMetricAuthenticator.shared.evaluate(policy: .deviceOwnerAuthentication, with: context, reason: reasonString, completion: completion)
+        } else {
+            // Fallback on earlier versions
+            BioMetricAuthenticator.shared.evaluate(policy: .deviceOwnerAuthenticationWithBiometrics, with: context, reason: reasonString, completion: completion)
+        }
+    }
+    
+    /// Check for device passcode authentication
+    @objc class func authenticateWithPasscode(reason: String, cancelTitle: String? = "", completion: BioMetricAuthenticatorController) {
         
         // reason
         let reasonString = reason.isEmpty ? BioMetricAuthenticator.shared.defaultPasscodeAuthenticationReason() : reason
@@ -113,7 +153,7 @@ public extension BioMetricAuthenticator {
     }
     
     /// checks if device supports face id authentication
-    func faceIDAvailable() -> Bool {
+    @objc func faceIDAvailable() -> Bool {
         if #available(iOS 11.0, *) {
             let context = LAContext()
             return (context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: nil) && context.biometryType == .faceID)
@@ -122,7 +162,7 @@ public extension BioMetricAuthenticator {
     }
     
     /// checks if device supports touch id authentication
-    func touchIDAvailable() -> Bool {
+    @objc func touchIDAvailable() -> Bool {
         let context = LAContext()
         var error: NSError?
         
@@ -133,6 +173,7 @@ public extension BioMetricAuthenticator {
         return canEvaluate
     }
 }
+
 
 // MARK:- Private
 extension BioMetricAuthenticator {
@@ -153,6 +194,19 @@ extension BioMetricAuthenticator {
             return false
         }
         return true
+    }
+    
+    private func evaluate(policy: LAPolicy, with context: LAContext, reason: String, completion: BioMetricAuthenticatorController) {
+        
+        context.evaluatePolicy(policy, localizedReason: reason) { (success, err) in
+            DispatchQueue.main.async {
+                if success {
+                    completion.biometricResultOK();
+                } else {
+                    completion.biometricError(error: AuthenticationErrorOBJC.initWithError(err as! LAError));
+                }
+            }
+        }
     }
     
     /// evaluate policy
