@@ -67,7 +67,17 @@ public enum AuthenticationError: Error {
         case .biometryNotAvailable:
             return kBiometryNotAvailableReason
         case .biometryNotEnrolled:
-            return authentication.faceIDAvailable() ? kNoFaceIdentityEnrolled : kNoFingerprintEnrolled
+            let context = LAContext()
+            _ = context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: nil)
+            if #available(iOS 11.0, *) {
+                switch context.biometryType {
+                case .touchID: return kNoFingerprintEnrolled
+                case .faceID: return kNoFaceIdentityEnrolled
+                default: return kNoFaceIdentityEnrolled
+                }
+            } else {
+                return kNoFaceIdentityEnrolled
+            }
         case .biometryLockedout:
             return authentication.faceIDAvailable() ? kFaceIdPasscodeAuthenticationReason : kTouchIdPasscodeAuthenticationReason
         default:
