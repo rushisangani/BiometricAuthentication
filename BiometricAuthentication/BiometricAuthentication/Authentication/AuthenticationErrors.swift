@@ -57,21 +57,21 @@ public enum AuthenticationError: Error {
     
     // get error message based on type
     public func message() -> String {
-        let authentication = BioMetricAuthenticator.shared
+        let isFaceIdDevice = BioMetricAuthenticator.shared.isFaceIdDevice()
         
         switch self {
         case .canceledByUser, .fallback, .canceledBySystem:
             return ""
         case .passcodeNotSet:
-            return authentication.faceIDAvailable() ? kSetPasscodeToUseFaceID : kSetPasscodeToUseTouchID
+            return isFaceIdDevice ? kSetPasscodeToUseFaceID : kSetPasscodeToUseTouchID
         case .biometryNotAvailable:
             return kBiometryNotAvailableReason
         case .biometryNotEnrolled:
-            return authentication.faceIDAvailable() ? kNoFaceIdentityEnrolled : kNoFingerprintEnrolled
+            return isFaceIdDevice ? kNoFaceIdentityEnrolled : kNoFingerprintEnrolled
         case .biometryLockedout:
-            return authentication.faceIDAvailable() ? kFaceIdPasscodeAuthenticationReason : kTouchIdPasscodeAuthenticationReason
+            return isFaceIdDevice ? kFaceIdPasscodeAuthenticationReason : kTouchIdPasscodeAuthenticationReason
         default:
-            return authentication.faceIDAvailable() ? kDefaultFaceIDAuthenticationFailedReason : kDefaultTouchIDAuthenticationFailedReason
+            return isFaceIdDevice ? kDefaultFaceIDAuthenticationFailedReason : kDefaultTouchIDAuthenticationFailedReason
         }
     }
 }

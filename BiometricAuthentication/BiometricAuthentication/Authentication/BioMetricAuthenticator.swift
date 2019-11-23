@@ -112,16 +112,19 @@ public extension BioMetricAuthenticator {
         }
     }
     
-    /// checks if device supports face id authentication
+    /// checks if device supports face id and authentication can be done
     func faceIDAvailable() -> Bool {
+        let context = LAContext()
+        var error: NSError?
+        
+        let canEvaluate = context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: &error)
         if #available(iOS 11.0, *) {
-            let context = LAContext()
-            return (context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: nil) && context.biometryType == .faceID)
+            return canEvaluate && context.biometryType == .faceID
         }
-        return false
+        return canEvaluate
     }
     
-    /// checks if device supports touch id authentication
+    /// checks if device supports touch id and authentication can be done
     func touchIDAvailable() -> Bool {
         let context = LAContext()
         var error: NSError?
@@ -131,6 +134,18 @@ public extension BioMetricAuthenticator {
             return canEvaluate && context.biometryType == .touchID
         }
         return canEvaluate
+    }
+    
+    /// checks if device has faceId
+    /// this is added to identify if device has faceId or touchId
+    /// note: this will not check if devices can perform biometric authentication
+    func isFaceIdDevice() -> Bool {
+        let context = LAContext()
+        _ = context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error: nil)
+        if #available(iOS 11.0, *) {
+            return context.biometryType == .faceID
+        }
+        return false
     }
 }
 
