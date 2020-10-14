@@ -8,7 +8,7 @@ It's very simple and easy to use that handles Touch ID and Face ID authenticatio
 <string>This app requires Face ID permission to authenticate using Face recognition.</string>
 ```
 
-### What's new in version 3.0
+### What's new in version 3.1
 - Updated to Swift 5.0
 - Implemented **Result** type as completion callback
 
@@ -19,7 +19,7 @@ It's very simple and easy to use that handles Touch ID and Face ID authenticatio
 ```swift
 
 // set this before calling authenticateWithBioMetrics method (optional)
-BioMetricAuthenticator.shared.allowableReuseDuration = 60   //(iOS 9.0 or later)
+BioMetricAuthenticator.shared.allowableReuseDuration = 60
 ```
 
 ### Version 2.1
@@ -38,8 +38,8 @@ BioMetricAuthenticator.shared.allowableReuseDuration = 60   //(iOS 9.0 or later)
 
 ## Requirements
 
-- iOS 8.0+
-- Xcode 8+
+- iOS 12.0+
+- Xcode 10+
 - Swift 3.0+
 
 ## Installation
