@@ -3,7 +3,7 @@
 //  BiometricAuthentication
 //
 //  Created by Rushi on 28/10/17.
-//  Copyright © 2017 Rushi Sangani. All rights reserved.
+//  Copyright © 2018 Rushi Sangani. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

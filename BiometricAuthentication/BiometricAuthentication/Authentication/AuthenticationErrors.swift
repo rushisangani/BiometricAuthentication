@@ -2,7 +2,7 @@
 //  AuthenticationErrors.swift
 //  BiometricAuthentication
 //
-//  Copyright (c) 2017 Rushi Sangani
+//  Copyright (c) 2018 Rushi Sangani
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,19 @@ import Foundation
 import LocalAuthentication
 
 /// Authentication Errors
-public enum AuthenticationError {
+public enum AuthenticationError: Error {
     
-    case failed, canceledByUser, fallback, canceledBySystem, passcodeNotSet, biometryNotAvailable, biometryNotEnrolled, biometryLockedout, other
+    case failed,
+         canceledByUser,
+         fallback,
+         canceledBySystem,
+         passcodeNotSet,
+         biometryNotAvailable,
+         biometryNotEnrolled,
+         biometryLockedout,
+         other
     
-    public static func `init`(error: LAError) -> AuthenticationError {
+    public static func initWithError(_ error: LAError) -> AuthenticationError {
         switch Int32(error.errorCode) {
             
         case kLAErrorAuthenticationFailed:
@@ -57,21 +65,26 @@ public enum AuthenticationError {
     
     // get error message based on type
     public func message() -> String {
-        let authentication = BioMetricAuthenticator.shared
+        let isFaceIdDevice = BioMetricAuthenticator.shared.isFaceIdDevice()
         
         switch self {
         case .canceledByUser, .fallback, .canceledBySystem:
             return ""
+        
         case .passcodeNotSet:
-            return authentication.faceIDAvailable() ? kSetPasscodeToUseFaceID : kSetPasscodeToUseTouchID
+            return isFaceIdDevice ? kSetPasscodeToUseFaceID : kSetPasscodeToUseTouchID
+            
         case .biometryNotAvailable:
             return kBiometryNotAvailableReason
+            
         case .biometryNotEnrolled:
-            return authentication.faceIDAvailable() ? kNoFaceIdentityEnrolled : kNoFingerprintEnrolled
+            return isFaceIdDevice ? kNoFaceIdentityEnrolled : kNoFingerprintEnrolled
+            
         case .biometryLockedout:
-            return authentication.faceIDAvailable() ? kFaceIdPasscodeAuthenticationReason : kTouchIdPasscodeAuthenticationReason
+            return isFaceIdDevice ? kFaceIdPasscodeAuthenticationReason : kTouchIdPasscodeAuthenticationReason
+            
         default:
-            return authentication.faceIDAvailable() ? kDefaultFaceIDAuthenticationFailedReason : kDefaultTouchIDAuthenticationFailedReason
+            return isFaceIdDevice ? kDefaultFaceIDAuthenticationFailedReason : kDefaultTouchIDAuthenticationFailedReason
         }
     }
 }

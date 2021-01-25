@@ -3,17 +3,11 @@
 //  BiometricAuthentication
 //
 //  Created by Rushi on 27/10/17.
-//  Copyright © 2017 Rushi Sangani. All rights reserved.
+//  Copyright © 2018 Rushi Sangani. All rights reserved.
 //
 
 import Foundation
 import LocalAuthentication
-
-/// success block
-public typealias AuthenticationSuccess = (() -> ())
-
-/// failure block
-public typealias AuthenticationFailure = ((AuthenticationError) -> ())
 
 let kBiometryNotAvailableReason = "Biometric authentication is not available for this device."
 

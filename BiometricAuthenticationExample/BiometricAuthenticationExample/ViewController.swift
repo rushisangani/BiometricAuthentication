@@ -3,7 +3,7 @@
 //  BiometricAuthenticationExample
 //
 //  Created by Rushi on 28/10/17.
-//  Copyright © 2017 Rushi Sangani. All rights reserved.
+//  Copyright © 2018 Rushi Sangani. All rights reserved.
 //
 
 import UIKit
@@ -31,59 +31,61 @@ class ViewController: UIViewController {
     
     @IBAction func biometricAuthenticationClicked(_ sender: Any) {
         
+        // Set AllowableReuseDuration in seconds to bypass the authentication when user has just unlocked the device with biometric
+        BioMetricAuthenticator.shared.allowableReuseDuration = 30
+        
         // start authentication
-        BioMetricAuthenticator.authenticateWithBioMetrics(reason: "", success: {
-            
-            // authentication successful
-            self.showLoginSucessAlert()
-            
-        }, failure: { [weak self] (error) in
-            
-            
-            // do nothing on canceled
-            if error == .canceledByUser || error == .canceledBySystem {
-                return
-            }
-            
-            // device does not support biometric (face id or touch id) authentication
-            else if error == .biometryNotAvailable {
-                self?.showErrorAlert(message: error.message())
-            }
+        BioMetricAuthenticator.authenticateWithBioMetrics(reason: "") { [weak self] (result) in
                 
-            // show alternatives on fallback button clicked
-            else if error == .fallback {
+            switch result {
+            case .success( _):
                 
-                // here we're entering username and password
-                self?.txtUsername.becomeFirstResponder()
-            }
+                // authentication successful
+                self?.showLoginSucessAlert()
                 
+            case .failure(let error):
+                
+                switch error {
+                    
+                // device does not support biometric (face id or touch id) authentication
+                case .biometryNotAvailable:
+                    self?.showErrorAlert(message: error.message())
+                    
                 // No biometry enrolled in this device, ask user to register fingerprint or face
-            else if error == .biometryNotEnrolled {
-                self?.showGotoSettingsAlert(message: error.message())
-            }
-                
-                // Biometry is locked out now, because there were too many failed attempts.
+                case .biometryNotEnrolled:
+                    self?.showGotoSettingsAlert(message: error.message())
+                    
+                // show alternatives on fallback button clicked
+                case .fallback:
+                    self?.txtUsername.becomeFirstResponder() // enter username password manually
+                    
+                    // Biometry is locked out now, because there were too many failed attempts.
                 // Need to enter device passcode to unlock.
-            else if error == .biometryLockedout {
-                self?.showPasscodeAuthentication(message: error.message())
+                case .biometryLockedout:
+                    self?.showPasscodeAuthentication(message: error.message())
+                    
+                // do nothing on canceled by system or user
+                case .canceledBySystem, .canceledByUser:
+                    break
+                    
+                // show error for any other reason
+                default:
+                    self?.showErrorAlert(message: error.message())
+                }
             }
-                
-                // show error on authentication failed
-            else {
-                self?.showErrorAlert(message: error.message())
-            }
-        })
+        }
     }
     
     // show passcode authentication
     func showPasscodeAuthentication(message: String) {
         
-        BioMetricAuthenticator.authenticateWithPasscode(reason: message, success: {
-            // passcode authentication success
-            self.showLoginSucessAlert()
-            
-        }) { (error) in
-            print(error.message())
+        BioMetricAuthenticator.authenticateWithPasscode(reason: message) { [weak self] (result) in
+            switch result {
+            case .success( _):
+                self?.showLoginSucessAlert() // passcode authentication success
+            case .failure(let error):
+                print(error.message())
+            }
         }
     }
 }
@@ -114,9 +116,9 @@ extension ViewController {
             if buttonText == CancelTitle { return }
             
             // open settings
-            let url = URL(string: "App-Prefs:root=TOUCHID_PASSCODE")
+            let url = URL(string: UIApplication.openSettingsURLString)
             if UIApplication.shared.canOpenURL(url!) {
-                UIApplication.shared.open(url!, options: [:], completionHandler: nil)
+                UIApplication.shared.open(url!, options: [:])
             }
             
         })
