@@ -77,12 +77,12 @@ public extension BioMetricAuthenticator {
         context.localizedCancelTitle = cancelTitle
         
         // authenticate
-        BioMetricAuthenticator.shared.evaluate(
-            policy: .deviceOwnerAuthenticationWithBiometrics,
-            with: context,
-            reason: reasonString,
-            completion: completion
-        )
+        if #available(iOS 9.0, *) {
+            BioMetricAuthenticator.shared.evaluate(policy: LAPolicy.deviceOwnerAuthentication, with: context, reason: reasonString, success: successBlock, failure: failureBlock)
+        } else {
+            // Fallback on earlier versions
+            BioMetricAuthenticator.shared.evaluate(policy: LAPolicy.deviceOwnerAuthenticationWithBiometrics, with: context, reason: reasonString, success: successBlock, failure: failureBlock)
+        }
     }
     
     /// Check for device passcode authentication
