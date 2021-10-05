@@ -34,6 +34,8 @@ open class BioMetricAuthenticator: NSObject {
     // MARK: - Private
     private override init() {}
     
+    private var currentContext: LAContext?
+    
     // MARK: - Public
     public var allowableReuseDuration: TimeInterval = 0
 }
@@ -163,6 +165,8 @@ extension BioMetricAuthenticator {
         reason: String,
         completion: @escaping (Result<Bool, AuthenticationError>) -> ()
     ) {
+        currentContext?.invalidate()
+        currentContext = context
         
         context.evaluatePolicy(policy, localizedReason: reason) { (success, err) in
             DispatchQueue.main.async {
