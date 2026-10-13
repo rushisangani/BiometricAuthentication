@@ -3,14 +3,15 @@
 All notable changes to this project are documented in this file.
 This project follows [Semantic Versioning](https://semver.org).
 
-## [Unreleased]
+## [4.1.0]
 
-### Added
-- Completion-handler variants of `authenticateWithBiometrics` and `authenticateWithPasscode` return their `Task` (`@discardableResult`), so the authentication can be cancelled.
+### Changed
+- `BiometricAuthenticator` is now a `@MainActor final class`. Availability and hardware checks, `canAuthenticate()` and `AuthenticationError.message(using:)` remain callable from any thread.
 
 ### Fixed
-- Cancelling the task that runs authentication now invalidates its `LAContext`, which dismisses the prompt and throws `canceledByApp`. Cancel the previous authentication before starting a new one to avoid stale prompts and loops ([#46](https://github.com/rushisangani/BiometricAuthentication/issues/46), [#45](https://github.com/rushisangani/BiometricAuthentication/issues/45)).
+- Starting a new authentication invalidates the one still in progress on the same authenticator, which fails with `canceledByApp`, instead of leaving a stale `LAContext` that could loop or block retries ([#46](https://github.com/rushisangani/BiometricAuthentication/issues/46), [#45](https://github.com/rushisangani/BiometricAuthentication/issues/45)).
 - `biometryNotAvailable` on a Face ID device, usually caused by denying the app's Face ID permission, now shows a Face ID message pointing to Settings (new key `faceid.not.available`) instead of saying the device has no biometry ([#40](https://github.com/rushisangani/BiometricAuthentication/issues/40)).
+- The library compiles in Swift 6 language mode.
 
 ## [4.0.0]
 

@@ -36,8 +36,6 @@ struct LocalizationTests {
 
     /// Returns an authenticator on a device without biometry, so messages don't depend on the simulator's biometry type.
     private func makeAuthenticator(tableName: String) -> BiometricAuthenticator {
-        var authenticator = BiometricAuthenticator(bundle: .module, tableName: tableName)
-        authenticator.makeContext = { MockLAContext() }
-        return authenticator
+        BiometricAuthenticator(bundle: .module, tableName: tableName, makeContext: { MockLAContext() })
     }
 }

@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
 s.name         = "BiometricAuthentication"
-s.version      = "4.0.0"
+s.version      = "4.1.0"
 
 s.summary      = "Use Apple Face ID, Touch ID or Optic ID authentication in your app using BiometricAuthentication."
 

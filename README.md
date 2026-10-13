@@ -8,10 +8,15 @@ It's very simple and easy to use that handles biometric and device passcode auth
 <string>This app requires Face ID permission to authenticate using Face recognition.</string>
 ```
 
+## What's new in version 4.1.0
+- **One prompt at a time** - Starting a new authentication invalidates the one still in progress on the same authenticator, which fails with `canceledByApp`. Repeated calls (for ex. each time the app becomes active) no longer leave stale prompts behind.
+- **Main actor class** - `BiometricAuthenticator` is now a `@MainActor final class`. Availability checks such as `faceIDAvailable()` can still be called from any thread.
+- **Face ID permission message** - When the user denies the app's Face ID permission, `biometryNotAvailable` shows a Face ID message pointing to Settings (`faceid.not.available`).
+
 ## What's new in version 4.0.0
 - **async/await support** - `authenticateWithBiometrics` and `authenticateWithPasscode` are now `async throws` and simply return on success. Completion-handler variants are still available, are called on the main actor and receive `Result<Void, AuthenticationError>`.
 - **Swiftier names** - `authenticateWithBioMetrics` is now `authenticateWithBiometrics`, `isFaceIdDevice()` is now `isFaceIDDevice()`, and `AuthenticationError.initWithError(_:)` is now `AuthenticationError(_:)`.
-- **Struct based, no singleton** - `BiometricAuthenticator` is now a lightweight `Sendable` struct instead of `BioMetricAuthenticator.shared`.
+- **No singleton** - Create and keep your own `BiometricAuthenticator` instead of using `BioMetricAuthenticator.shared`.
 - **Localized strings** - All messages are looked up in your own bundle and strings table (`.strings` or `.xcstrings`), with built-in English defaults for any missing key.
 - **More error cases** - `AuthenticationError` now covers `canceledByApp`, `invalidContext`, `notInteractive` and `companionNotAvailable`, matching Apple's `LAError`.
 - **Optic ID** support for Apple Vision Pro.
@@ -47,7 +52,7 @@ In Xcode choose **File → Add Package Dependencies…** and enter the repositor
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/rushisangani/BiometricAuthentication.git", from: "4.0.0")
+    .package(url: "https://github.com/rushisangani/BiometricAuthentication.git", from: "4.1.0")
 ]
 ```
 
@@ -65,12 +70,13 @@ pod 'BiometricAuthentication', '~> 4.0'
 import BiometricAuthentication
 
 // Localized messages are looked up in the given bundle and strings table (defaults: `.main`, "Localizable").
-var authenticator = BiometricAuthenticator(bundle: .main, tableName: "Localizable")
+let authenticator = BiometricAuthenticator(bundle: .main, tableName: "Localizable")
 
 // Optional: reuse a recent lock-screen unlock (in seconds) without prompting again. Default is 0 (no reuse).
 authenticator.allowableReuseDuration = 30
 ```
-- `BiometricAuthenticator` is a value type, so keep it as a property (for ex. in your view controller or view model) and configure it per use case.
+- Keep the authenticator as a property (for ex. in your view controller or view model) and reuse it. It is a `@MainActor` class, so authenticate from the main actor or `await` the call.
+- Only one authentication runs at a time per authenticator: starting a new one invalidates the one still in progress, which fails with `AuthenticationError.canceledByApp`.
 
 ### Allowable Reuse Duration
 - If the user unlocked the device with Face ID or Touch ID on the **lock screen** within `allowableReuseDuration` seconds, `authenticateWithBiometrics` succeeds immediately without showing a prompt.
@@ -117,25 +123,6 @@ authenticator.authenticateWithBiometrics(reason: "") { result in
         print("Authentication Successful")
     case .failure(let error):
         print(error.message(using: authenticator))
-    }
-}
-```
-
-### Cancelling authentication
-- Cancelling the task that runs authentication dismisses the prompt and throws `AuthenticationError.canceledByApp`. The completion-handler variants return that task.
-- Cancel the previous authentication before starting a new one, so only one prompt is ever in progress. For example, don't start a new one each time the app becomes active while a prompt is still showing.
-
-```swift
-private var authenticationTask: Task<Void, Never>?
-
-func authenticate() {
-    authenticationTask?.cancel()
-    authenticationTask = Task {
-        do {
-            try await authenticator.authenticateWithBiometrics(reason: "")
-        } catch {
-            // handle error
-        }
     }
 }
 ```
@@ -328,6 +315,7 @@ See [Example](https://github.com/rushisangani/BiometricAuthentication/tree/maste
 - `authenticateWithBioMetrics` is renamed to `authenticateWithBiometrics` (lowercase **m**).
 - Authentication no longer returns a `Bool`: the async functions return on success and throw an `AuthenticationError` on failure, and completion handlers receive `Result<Void, AuthenticationError>`.
 - Completion handlers are now called on the main actor and must be `@Sendable`; closures written inline need no changes.
+- `BiometricAuthenticator` is a `@MainActor final class`: call authentication from the main actor (for ex. a view controller or `@MainActor` view model) or `await` it.
 - The `shared` singleton is removed.
 - New `AuthenticationError` cases were added. Add a `default` case to any exhaustive `switch` over the error.
 - Minimum deployment target is now iOS 15.0.
