@@ -10,7 +10,6 @@ It's very simple and easy to use that handles biometric and device passcode auth
 
 ## What's new in version 4.1.0
 - **One prompt at a time** - Starting a new authentication invalidates the one still in progress on the same authenticator, which fails with `canceledByApp`. Repeated calls (for ex. each time the app becomes active) no longer leave stale prompts behind.
-- **Main actor class** - `BiometricAuthenticator` is now a `@MainActor final class`. Availability checks such as `faceIDAvailable()` can still be called from any thread.
 - **Face ID permission message** - When the user denies the app's Face ID permission, `biometryNotAvailable` shows a Face ID message pointing to Settings (`faceid.not.available`).
 
 ## What's new in version 4.0.0
@@ -75,7 +74,7 @@ let authenticator = BiometricAuthenticator(bundle: .main, tableName: "Localizabl
 // Optional: reuse a recent lock-screen unlock (in seconds) without prompting again. Default is 0 (no reuse).
 authenticator.allowableReuseDuration = 30
 ```
-- Keep the authenticator as a property (for ex. in your view controller or view model) and reuse it. It is a `@MainActor` class, so authenticate from the main actor or `await` the call.
+- Keep the authenticator as a property (for ex. in your view controller or view model) and reuse it. Authentication runs on the main actor, so call it from the main actor or `await` it.
 - Only one authentication runs at a time per authenticator: starting a new one invalidates the one still in progress, which fails with `AuthenticationError.canceledByApp`.
 
 ### Allowable Reuse Duration
@@ -301,7 +300,7 @@ See [Example](https://github.com/rushisangani/BiometricAuthentication/tree/maste
 
 | 3.x | 4.0.0 |
 |---|---|
-| `BioMetricAuthenticator.shared.allowableReuseDuration = 60` | `var authenticator = BiometricAuthenticator()`<br>`authenticator.allowableReuseDuration = 60` |
+| `BioMetricAuthenticator.shared.allowableReuseDuration = 60` | `let authenticator = BiometricAuthenticator()`<br>`authenticator.allowableReuseDuration = 60` |
 | `BioMetricAuthenticator.authenticateWithBioMetrics(reason:) { result in }` | `try await authenticator.authenticateWithBiometrics(reason:)`<br>or `authenticator.authenticateWithBiometrics(reason:) { result in }` |
 | `case .success(let success):` (`Result<Bool, AuthenticationError>`) | `case .success:` (`Result<Void, AuthenticationError>`) |
 | `BioMetricAuthenticator.authenticateWithPasscode(reason:) { result in }` | `try await authenticator.authenticateWithPasscode(reason:)`<br>or `authenticator.authenticateWithPasscode(reason:) { result in }` |
@@ -315,7 +314,7 @@ See [Example](https://github.com/rushisangani/BiometricAuthentication/tree/maste
 - `authenticateWithBioMetrics` is renamed to `authenticateWithBiometrics` (lowercase **m**).
 - Authentication no longer returns a `Bool`: the async functions return on success and throw an `AuthenticationError` on failure, and completion handlers receive `Result<Void, AuthenticationError>`.
 - Completion handlers are now called on the main actor and must be `@Sendable`; closures written inline need no changes.
-- `BiometricAuthenticator` is a `@MainActor final class`: call authentication from the main actor (for ex. a view controller or `@MainActor` view model) or `await` it.
+- Authentication runs on the main actor: call it from the main actor (for ex. a view controller or `@MainActor` view model) or `await` it.
 - The `shared` singleton is removed.
 - New `AuthenticationError` cases were added. Add a `default` case to any exhaustive `switch` over the error.
 - Minimum deployment target is now iOS 15.0.
