@@ -27,28 +27,40 @@ import Foundation
 import LocalAuthentication
 
 /// Performs biometric (Touch ID, Face ID, Optic ID) and device-passcode authentication.
-public struct BiometricAuthenticator: Sendable {
+///
+/// Starting a new authentication invalidates the one still in progress on the same authenticator, which then fails
+/// with ``AuthenticationError/canceledByApp``. Keep one authenticator per screen or feature and reuse it.
+@MainActor
+public final class BiometricAuthenticator {
 
     // MARK: - Properties
-    
+
     /// Duration (in seconds) for which a successful Touch ID or Face ID unlock on the device lock screen is reused, so biometric authentication succeeds without prompting again. Defaults to `0` (no reuse).
     ///
     /// Only lock-screen unlocks are reused, not previous biometric matches in the app. The value is clamped to `0...LATouchIDAuthenticationMaximumAllowableReuseDuration` (5 minutes).
     public var allowableReuseDuration: TimeInterval = 0
-    
-    var bundle: Bundle
-    var tableName: String
-    
+
+    nonisolated let bundle: Bundle
+    nonisolated let tableName: String
+
     /// Creates the `LAContext` used for each check and evaluation. Replaced in tests.
-    var makeContext: @Sendable () -> LAContext = { LAContext() }
-    
+    nonisolated let makeContext: @Sendable () -> LAContext
+
+    /// Context of the authentication in progress, invalidated when a new authentication starts.
+    private var currentContext: LAContext?
+
     /// Creates an authenticator that resolves its localized messages from the given bundle and strings table.
     /// - Parameters:
     ///   - bundle: Bundle containing the localized strings. Defaults to `.main`.
     ///   - tableName: Name of the strings table (`.strings` / `.xcstrings`) to look up keys in. Defaults to `"Localizable"`.
-    public init(bundle: Bundle = .main, tableName: String = "Localizable") {
+    public nonisolated convenience init(bundle: Bundle = .main, tableName: String = "Localizable") {
+        self.init(bundle: bundle, tableName: tableName, makeContext: { LAContext() })
+    }
+
+    nonisolated init(bundle: Bundle, tableName: String, makeContext: @escaping @Sendable () -> LAContext) {
         self.bundle = bundle
         self.tableName = tableName
+        self.makeContext = makeContext
     }
 }
 
@@ -58,7 +70,7 @@ public extension BiometricAuthenticator {
 
     /// Checks if biometric authentication can be performed currently on the device.
     /// - Returns: `true` when biometry is available and enrolled, otherwise `false`.
-    static func canAuthenticate() -> Bool {
+    nonisolated static func canAuthenticate() -> Bool {
         canAuthenticate(context: LAContext())
     }
 
@@ -95,7 +107,7 @@ public extension BiometricAuthenticator {
 
     /// Checks if device supports Face ID and authentication can be done.
     /// - Returns: `true` when the device has Face ID and it is available and enrolled, otherwise `false`.
-    func faceIDAvailable() -> Bool {
+    nonisolated func faceIDAvailable() -> Bool {
         let context = makeContext()
         var error: NSError?
 
@@ -105,7 +117,7 @@ public extension BiometricAuthenticator {
 
     /// Checks if device supports Touch ID and authentication can be done.
     /// - Returns: `true` when the device has Touch ID and it is available and enrolled, otherwise `false`.
-    func touchIDAvailable() -> Bool {
+    nonisolated func touchIDAvailable() -> Bool {
         let context = makeContext()
         var error: NSError?
 
@@ -115,7 +127,7 @@ public extension BiometricAuthenticator {
 
     /// Checks if device supports Optic ID (Apple Vision Pro) and authentication can be done.
     /// - Returns: `true` when the device has Optic ID and it is available and enrolled, otherwise `false`. Always `false` below iOS 17 / visionOS 1.
-    func opticIDAvailable() -> Bool {
+    nonisolated func opticIDAvailable() -> Bool {
         guard #available(iOS 17.0, visionOS 1.0, *) else { return false }
         let context = makeContext()
         var error: NSError?
@@ -126,7 +138,7 @@ public extension BiometricAuthenticator {
 
     /// Checks if device has Face ID hardware (regardless of enrollment/availability).
     /// - Returns: `true` when the device's biometry type is Face ID, otherwise `false`.
-    func isFaceIDDevice() -> Bool {
+    nonisolated func isFaceIDDevice() -> Bool {
         let context = makeContext()
         _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
         return context.biometryType == .faceID
@@ -134,7 +146,7 @@ public extension BiometricAuthenticator {
 
     /// Checks if device has Optic ID hardware (regardless of enrollment/availability).
     /// - Returns: `true` when the device's biometry type is Optic ID, otherwise `false`. Always `false` below iOS 17 / visionOS 1.
-    func isOpticIDDevice() -> Bool {
+    nonisolated func isOpticIDDevice() -> Bool {
         guard #available(iOS 17.0, visionOS 1.0, *) else { return false }
         let context = makeContext()
         _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
@@ -153,7 +165,7 @@ public extension BiometricAuthenticator {
     ///   - cancelTitle: Title of the cancel button. `nil` or `""` shows the system default.
     ///   - completion: Called on the main actor with `.success` when authentication succeeds, or `.failure` with the `AuthenticationError` describing the failure reason.
     func authenticateWithBiometrics(reason: String, fallbackTitle: String? = "", cancelTitle: String? = "", completion: @escaping @MainActor @Sendable (Result<Void, AuthenticationError>) -> Void) {
-        Task { @MainActor in
+        Task {
             do {
                 try await authenticateWithBiometrics(reason: reason, fallbackTitle: fallbackTitle, cancelTitle: cancelTitle)
                 completion(.success(()))
@@ -171,7 +183,7 @@ public extension BiometricAuthenticator {
     ///   - cancelTitle: Title of the cancel button. `nil` or `""` shows the system default.
     ///   - completion: Called on the main actor with `.success` when authentication succeeds, or `.failure` with the `AuthenticationError` describing the failure reason.
     func authenticateWithPasscode(reason: String, cancelTitle: String? = "", completion: @escaping @MainActor @Sendable (Result<Void, AuthenticationError>) -> Void) {
-        Task { @MainActor in
+        Task {
             do {
                 try await authenticateWithPasscode(reason: reason, cancelTitle: cancelTitle)
                 completion(.success(()))
@@ -194,14 +206,14 @@ extension BiometricAuthenticator {
     }
 
     /// Checks if biometric authentication can be performed with the given context.
-    static func canAuthenticate(context: LAContext) -> Bool {
+    nonisolated static func canAuthenticate(context: LAContext) -> Bool {
         var error: NSError?
         let canEvaluate = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
         return canEvaluate && error == nil
     }
 
     /// Looks up `text.key` in `tableName` within `bundle`, falling back to `text.defaultValue` when missing.
-    func localizedString(_ text: LocalizedText) -> String {
+    nonisolated func localizedString(_ text: LocalizedText) -> String {
         NSLocalizedString(text.key, tableName: tableName, bundle: bundle, value: text.defaultValue, comment: "")
     }
 }
@@ -210,18 +222,28 @@ extension BiometricAuthenticator {
 
 private extension BiometricAuthenticator {
 
-    func defaultBiometricAuthenticationReason() -> String {
+    nonisolated func defaultBiometricAuthenticationReason() -> String {
         if isOpticIDDevice() { return localizedString(kOpticIdAuthenticationReason) }
         return localizedString(isFaceIDDevice() ? kFaceIdAuthenticationReason : kTouchIdAuthenticationReason)
     }
 
-    func defaultPasscodeAuthenticationReason() -> String {
+    nonisolated func defaultPasscodeAuthenticationReason() -> String {
         if isOpticIDDevice() { return localizedString(kOpticIdPasscodeAuthenticationReason) }
         return localizedString(isFaceIDDevice() ? kFaceIdPasscodeAuthenticationReason : kTouchIdPasscodeAuthenticationReason)
     }
 
     /// Evaluates an `LAPolicy` using Swift Concurrency, mapping `LAError` into ``AuthenticationError``.
+    ///
+    /// Invalidates the authentication still in progress, if any, which then fails with ``AuthenticationError/canceledByApp``.
     func evaluate(policy: LAPolicy, with context: LAContext, reason: String) async throws {
+        currentContext?.invalidate()
+        currentContext = context
+        defer {
+            if currentContext === context {
+                currentContext = nil
+            }
+        }
+
         let result: Result<Void, AuthenticationError> = await withCheckedContinuation { continuation in
             context.evaluatePolicy(policy, localizedReason: reason) { success, error in
                 continuation.resume(returning: success ? .success(()) : .failure(AuthenticationError(error)))

@@ -23,7 +23,7 @@ class ViewController: UIViewController {
     // Localized messages are looked up in the "Localizable" table of the main bundle.
     // Set AllowableReuseDuration in seconds to bypass the authentication when user has just unlocked the device with biometric
     private let authenticator: BiometricAuthenticator = {
-        var authenticator = BiometricAuthenticator(bundle: .main, tableName: "Localizable")
+        let authenticator = BiometricAuthenticator(bundle: .main, tableName: "Localizable")
         authenticator.allowableReuseDuration = 30
         return authenticator
     }()

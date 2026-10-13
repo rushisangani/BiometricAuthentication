@@ -9,6 +9,7 @@ import Testing
 @testable import BiometricAuthentication
 
 @Suite("BiometricAuthenticator")
+@MainActor
 struct BiometricAuthenticatorTests {
 
     // MARK: - Configuration
@@ -20,8 +21,8 @@ struct BiometricAuthenticatorTests {
 
     @Test("Each instance keeps its own configuration")
     func instancesAreIndependent() {
-        var first = BiometricAuthenticator()
-        let second = first
+        let first = BiometricAuthenticator()
+        let second = BiometricAuthenticator()
         first.allowableReuseDuration = 30
 
         #expect(first.allowableReuseDuration == 30)
@@ -44,7 +45,7 @@ struct BiometricAuthenticatorTests {
     @Test("Biometric authentication configures the context")
     func biometricConfiguresContext() async throws {
         let context = MockLAContext()
-        var authenticator = makeAuthenticator(context)
+        let authenticator = makeAuthenticator(context)
         authenticator.allowableReuseDuration = 30
 
         try await authenticator.authenticateWithBiometrics(reason: "Log in", fallbackTitle: "Use Password", cancelTitle: "Not Now")
@@ -69,10 +70,10 @@ struct BiometricAuthenticatorTests {
         (30, 30),
         (LATouchIDAuthenticationMaximumAllowableReuseDuration, LATouchIDAuthenticationMaximumAllowableReuseDuration),
         (600, LATouchIDAuthenticationMaximumAllowableReuseDuration),
-    ])
+    ] as [(TimeInterval, TimeInterval)])
     func reuseDurationIsClamped(duration: TimeInterval, expected: TimeInterval) async throws {
         let context = MockLAContext()
-        var authenticator = makeAuthenticator(context)
+        let authenticator = makeAuthenticator(context)
         authenticator.allowableReuseDuration = duration
 
         try await authenticator.authenticateWithBiometrics(reason: "Log in")
@@ -84,8 +85,7 @@ struct BiometricAuthenticatorTests {
     @Test("Each authentication uses a new context with the current reuse duration")
     func reuseDurationAppliedToEveryNewContext() async throws {
         let contexts = ContextFactory()
-        var authenticator = BiometricAuthenticator(bundle: .module, tableName: "MissingTable")
-        authenticator.makeContext = { contexts.make() }
+        let authenticator = makeAuthenticator(contexts)
         authenticator.allowableReuseDuration = 60
 
         try await authenticator.authenticateWithBiometrics(reason: "First")
@@ -168,6 +168,57 @@ struct BiometricAuthenticatorTests {
         await #expect(throws: AuthenticationError.other) {
             try await makeAuthenticator(context).authenticateWithBiometrics(reason: "Log in")
         }
+    }
+
+    // MARK: - Authentication in progress
+
+    @Test("Starting a new authentication cancels the one still in progress")
+    func newAuthenticationInvalidatesPrevious() async throws {
+        let first = MockLAContext()
+        first.holdsReply = true
+        let (started, startedContinuation) = AsyncStream<Void>.makeStream()
+        first.onEvaluate = { startedContinuation.yield() }
+        let second = MockLAContext()
+        let authenticator = makeAuthenticator(ContextFactory([first, second]))
+
+        let firstTask = Task { try await authenticator.authenticateWithBiometrics(reason: "First") }
+        var iterator = started.makeAsyncIterator()
+        await iterator.next()
+
+        try await authenticator.authenticateWithPasscode(reason: "Second")
+
+        await #expect(throws: AuthenticationError.canceledByApp) { try await firstTask.value }
+        #expect(first.isInvalidated)
+        #expect(!second.isInvalidated)
+    }
+
+    @Test("A finished authentication is not invalidated by the next one")
+    func finishedAuthenticationIsNotInvalidated() async throws {
+        let contexts = ContextFactory()
+        let authenticator = makeAuthenticator(contexts)
+
+        try await authenticator.authenticateWithBiometrics(reason: "First")
+        try await authenticator.authenticateWithBiometrics(reason: "Second")
+
+        #expect(contexts.made.count == 2)
+        #expect(contexts.made.allSatisfy { !$0.isInvalidated })
+    }
+
+    @Test("Authentication on another authenticator is not cancelled")
+    func otherAuthenticatorIsNotCancelled() async throws {
+        let first = MockLAContext()
+        first.holdsReply = true
+        let (started, startedContinuation) = AsyncStream<Void>.makeStream()
+        first.onEvaluate = { startedContinuation.yield() }
+
+        Task { try await makeAuthenticator(first).authenticateWithBiometrics(reason: "First") }
+        var iterator = started.makeAsyncIterator()
+        await iterator.next()
+
+        try await makeAuthenticator(MockLAContext()).authenticateWithBiometrics(reason: "Second")
+
+        #expect(!first.isInvalidated)
+        first.invalidate() // let the first authentication finish
     }
 
     // MARK: - Passcode authentication
@@ -326,6 +377,9 @@ struct BiometricAuthenticatorTests {
         MessageCase(biometryType: .faceID, error: .biometryNotEnrolled, expected: kNoFaceIdentityEnrolled),
         MessageCase(biometryType: .touchID, error: .biometryNotEnrolled, expected: kNoFingerprintEnrolled),
         MessageCase(biometryType: .faceID, error: .passcodeNotSet, expected: kSetPasscodeToUseFaceID),
+        MessageCase(biometryType: .faceID, error: .biometryNotAvailable, expected: kFaceIdNotAvailableReason),
+        MessageCase(biometryType: .touchID, error: .biometryNotAvailable, expected: kBiometryNotAvailableReason),
+        MessageCase(biometryType: .none, error: .biometryNotAvailable, expected: kBiometryNotAvailableReason),
         MessageCase(biometryType: .touchID, error: .failed, expected: kDefaultTouchIDAuthenticationFailedReason),
     ])
     func errorMessage(_ testCase: MessageCase) {
@@ -338,10 +392,15 @@ struct BiometricAuthenticatorTests {
 
     // MARK: - Helpers
 
-    /// Hands out a new `MockLAContext` on every call and keeps them for inspection.
+    /// Hands out `queued` contexts first, then a new `MockLAContext` on every call, and keeps them for inspection.
     final class ContextFactory: @unchecked Sendable {
         private let lock = NSLock()
+        private var queued: [MockLAContext]
         private var contexts: [MockLAContext] = []
+
+        init(_ queued: [MockLAContext] = []) {
+            self.queued = queued
+        }
 
         var made: [MockLAContext] {
             lock.lock()
@@ -350,9 +409,9 @@ struct BiometricAuthenticatorTests {
         }
 
         func make() -> MockLAContext {
-            let context = MockLAContext()
             lock.lock()
             defer { lock.unlock() }
+            let context = queued.isEmpty ? MockLAContext() : queued.removeFirst()
             contexts.append(context)
             return context
         }
@@ -360,8 +419,11 @@ struct BiometricAuthenticatorTests {
 
     /// Returns an authenticator that uses `context` and the built-in English messages.
     private func makeAuthenticator(_ context: MockLAContext) -> BiometricAuthenticator {
-        var authenticator = BiometricAuthenticator(bundle: .module, tableName: "MissingTable")
-        authenticator.makeContext = { context }
-        return authenticator
+        BiometricAuthenticator(bundle: .module, tableName: "MissingTable", makeContext: { context })
+    }
+
+    /// Returns an authenticator that takes its contexts from `contexts` and uses the built-in English messages.
+    private func makeAuthenticator(_ contexts: ContextFactory) -> BiometricAuthenticator {
+        BiometricAuthenticator(bundle: .module, tableName: "MissingTable", makeContext: { contexts.make() })
     }
 }

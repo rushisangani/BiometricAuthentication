@@ -29,7 +29,7 @@ final class LoginViewModel {
     // Set AllowableReuseDuration in seconds to bypass the authentication when user has just unlocked the device with biometric
     @ObservationIgnored
     private let authenticator: BiometricAuthenticator = {
-        var authenticator = BiometricAuthenticator(bundle: .main, tableName: "Localizable")
+        let authenticator = BiometricAuthenticator(bundle: .main, tableName: "Localizable")
         authenticator.allowableReuseDuration = 30
         return authenticator
     }()
