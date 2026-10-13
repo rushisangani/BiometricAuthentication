@@ -41,9 +41,6 @@ public struct BiometricAuthenticator: Sendable {
     
     /// Creates the `LAContext` used for each check and evaluation. Replaced in tests.
     var makeContext: @Sendable () -> LAContext = { LAContext() }
-
-    /// Tracks the evaluation in progress so a new one invalidates it. Replaced in tests.
-    var evaluationTracker: EvaluationTracker = .shared
     
     /// Creates an authenticator that resolves its localized messages from the given bundle and strings table.
     /// - Parameters:
@@ -70,7 +67,7 @@ public extension BiometricAuthenticator {
     ///   - reason: Reason shown in the authentication prompt. Pass an empty string to use the default localized reason for the device's biometry type.
     ///   - fallbackTitle: Title of the fallback button. `""` hides the button, `nil` shows the system default.
     ///   - cancelTitle: Title of the cancel button. `nil` or `""` shows the system default.
-    /// - Throws: `AuthenticationError` describing the failure reason. Returns normally when authentication succeeds.
+    /// - Throws: `AuthenticationError` describing the failure reason. Returns normally when authentication succeeds. Cancelling the calling task dismisses the prompt and throws ``AuthenticationError/canceledByApp``.
     func authenticateWithBiometrics(reason: String, fallbackTitle: String? = "", cancelTitle: String? = "") async throws {
         let reasonString = reason.isEmpty ? defaultBiometricAuthenticationReason() : reason
 
@@ -86,7 +83,7 @@ public extension BiometricAuthenticator {
     /// - Parameters:
     ///   - reason: Reason shown in the authentication prompt. Pass an empty string to use the default localized reason for the device's biometry type.
     ///   - cancelTitle: Title of the cancel button. `nil` or `""` shows the system default.
-    /// - Throws: `AuthenticationError` describing the failure reason. Returns normally when authentication succeeds.
+    /// - Throws: `AuthenticationError` describing the failure reason. Returns normally when authentication succeeds. Cancelling the calling task dismisses the prompt and throws ``AuthenticationError/canceledByApp``.
     func authenticateWithPasscode(reason: String, cancelTitle: String? = "") async throws {
         let reasonString = reason.isEmpty ? defaultPasscodeAuthenticationReason() : reason
 
@@ -155,7 +152,9 @@ public extension BiometricAuthenticator {
     ///   - fallbackTitle: Title of the fallback button. `""` hides the button, `nil` shows the system default.
     ///   - cancelTitle: Title of the cancel button. `nil` or `""` shows the system default.
     ///   - completion: Called on the main actor with `.success` when authentication succeeds, or `.failure` with the `AuthenticationError` describing the failure reason.
-    func authenticateWithBiometrics(reason: String, fallbackTitle: String? = "", cancelTitle: String? = "", completion: @escaping @MainActor @Sendable (Result<Void, AuthenticationError>) -> Void) {
+    /// - Returns: The task performing authentication. Cancel it to dismiss the prompt; `completion` then receives ``AuthenticationError/canceledByApp``.
+    @discardableResult
+    func authenticateWithBiometrics(reason: String, fallbackTitle: String? = "", cancelTitle: String? = "", completion: @escaping @MainActor @Sendable (Result<Void, AuthenticationError>) -> Void) -> Task<Void, Never> {
         Task { @MainActor in
             do {
                 try await authenticateWithBiometrics(reason: reason, fallbackTitle: fallbackTitle, cancelTitle: cancelTitle)
@@ -173,7 +172,9 @@ public extension BiometricAuthenticator {
     ///   - reason: Reason shown in the authentication prompt. Pass an empty string to use the default localized reason for the device's biometry type.
     ///   - cancelTitle: Title of the cancel button. `nil` or `""` shows the system default.
     ///   - completion: Called on the main actor with `.success` when authentication succeeds, or `.failure` with the `AuthenticationError` describing the failure reason.
-    func authenticateWithPasscode(reason: String, cancelTitle: String? = "", completion: @escaping @MainActor @Sendable (Result<Void, AuthenticationError>) -> Void) {
+    /// - Returns: The task performing authentication. Cancel it to dismiss the prompt; `completion` then receives ``AuthenticationError/canceledByApp``.
+    @discardableResult
+    func authenticateWithPasscode(reason: String, cancelTitle: String? = "", completion: @escaping @MainActor @Sendable (Result<Void, AuthenticationError>) -> Void) -> Task<Void, Never> {
         Task { @MainActor in
             do {
                 try await authenticateWithPasscode(reason: reason, cancelTitle: cancelTitle)
@@ -225,11 +226,9 @@ private extension BiometricAuthenticator {
 
     /// Evaluates an `LAPolicy` using Swift Concurrency, mapping `LAError` into ``AuthenticationError``.
     ///
-    /// Invalidates the evaluation still in progress, if any, which then fails with ``AuthenticationError/canceledByApp``.
-    /// Cancelling the calling task also invalidates `context`.
+    /// Cancelling the calling task invalidates `context`, which dismisses the prompt and throws ``AuthenticationError/canceledByApp``.
     func evaluate(policy: LAPolicy, with context: LAContext, reason: String) async throws {
-        evaluationTracker.begin(context)
-        defer { evaluationTracker.end(context) }
+        guard !Task.isCancelled else { throw AuthenticationError.canceledByApp }
 
         let result: Result<Void, AuthenticationError> = await withTaskCancellationHandler {
             await withCheckedContinuation { continuation in
@@ -241,40 +240,6 @@ private extension BiometricAuthenticator {
             context.invalidate()
         }
         try result.get()
-    }
-}
-
-// MARK: - EvaluationTracker
-
-/// Keeps the `LAContext` currently being evaluated, so starting a new evaluation invalidates a stale one
-/// instead of leaving it to deliver results after the next prompt has started.
-final class EvaluationTracker: @unchecked Sendable {
-
-    /// Shared by all authenticators, since the system shows only one authentication prompt at a time.
-    static let shared = EvaluationTracker()
-
-    private let lock = NSLock()
-    private var current: LAContext?
-
-    /// Makes `context` the current evaluation and invalidates the previous one, if it is still in progress.
-    func begin(_ context: LAContext) {
-        lock.lock()
-        let previous = current
-        current = context
-        lock.unlock()
-
-        if let previous, previous !== context {
-            previous.invalidate()
-        }
-    }
-
-    /// Clears `context` if it is still the current evaluation.
-    func end(_ context: LAContext) {
-        lock.lock()
-        defer { lock.unlock() }
-        if current === context {
-            current = nil
-        }
     }
 }
 

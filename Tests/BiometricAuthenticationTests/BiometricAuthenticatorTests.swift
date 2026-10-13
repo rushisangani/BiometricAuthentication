@@ -86,7 +86,6 @@ struct BiometricAuthenticatorTests {
         let contexts = ContextFactory()
         var authenticator = BiometricAuthenticator(bundle: .module, tableName: "MissingTable")
         authenticator.makeContext = { contexts.make() }
-        authenticator.evaluationTracker = EvaluationTracker()
         authenticator.allowableReuseDuration = 60
 
         try await authenticator.authenticateWithBiometrics(reason: "First")
@@ -171,40 +170,7 @@ struct BiometricAuthenticatorTests {
         }
     }
 
-    // MARK: - Evaluation in progress
-
-    @Test("Starting a new authentication cancels the one still in progress")
-    func newAuthenticationInvalidatesPrevious() async throws {
-        let tracker = EvaluationTracker()
-        let first = MockLAContext()
-        first.holdsReply = true
-        let (started, startedContinuation) = AsyncStream<Void>.makeStream()
-        first.onEvaluate = { startedContinuation.yield() }
-        let second = MockLAContext()
-
-        let firstTask = Task { try await makeAuthenticator(first, tracker: tracker).authenticateWithBiometrics(reason: "First") }
-        var iterator = started.makeAsyncIterator()
-        await iterator.next()
-
-        try await makeAuthenticator(second, tracker: tracker).authenticateWithBiometrics(reason: "Second")
-
-        await #expect(throws: AuthenticationError.canceledByApp) { try await firstTask.value }
-        #expect(first.isInvalidated)
-        #expect(!second.isInvalidated)
-    }
-
-    @Test("A finished authentication is not invalidated by the next one")
-    func finishedAuthenticationIsNotInvalidated() async throws {
-        let tracker = EvaluationTracker()
-        let first = MockLAContext()
-        let second = MockLAContext()
-
-        try await makeAuthenticator(first, tracker: tracker).authenticateWithBiometrics(reason: "First")
-        try await makeAuthenticator(second, tracker: tracker).authenticateWithBiometrics(reason: "Second")
-
-        #expect(!first.isInvalidated)
-        #expect(!second.isInvalidated)
-    }
+    // MARK: - Cancellation
 
     @Test("Cancelling the task cancels authentication")
     func taskCancellationInvalidatesContext() async {
@@ -213,12 +179,49 @@ struct BiometricAuthenticatorTests {
         let (started, startedContinuation) = AsyncStream<Void>.makeStream()
         context.onEvaluate = { startedContinuation.yield() }
 
-        let task = Task { try await makeAuthenticator(context, tracker: EvaluationTracker()).authenticateWithPasscode(reason: "Unlock") }
+        let task = Task { try await makeAuthenticator(context).authenticateWithPasscode(reason: "Unlock") }
         var iterator = started.makeAsyncIterator()
         await iterator.next()
         task.cancel()
 
         await #expect(throws: AuthenticationError.canceledByApp) { try await task.value }
+        #expect(context.isInvalidated)
+    }
+
+    @Test("Authentication in an already cancelled task throws without prompting")
+    func alreadyCancelledTaskDoesNotPrompt() async {
+        let context = MockLAContext()
+        let authenticator = makeAuthenticator(context)
+
+        let task = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            try await authenticator.authenticateWithBiometrics(reason: "Log in")
+        }
+
+        await #expect(throws: AuthenticationError.canceledByApp) { try await task.value }
+        #expect(context.evaluatedPolicy == nil)
+    }
+
+    @Test("Cancelling the returned task delivers canceledByApp to the completion handler")
+    func completionHandlerCancellation() async {
+        let context = MockLAContext()
+        context.holdsReply = true
+        let (started, startedContinuation) = AsyncStream<Void>.makeStream()
+        context.onEvaluate = { startedContinuation.yield() }
+        let authenticator = makeAuthenticator(context)
+
+        let result = await withCheckedContinuation { continuation in
+            Task { @MainActor in
+                let task = authenticator.authenticateWithBiometrics(reason: "Log in") { result in
+                    continuation.resume(returning: result)
+                }
+                var iterator = started.makeAsyncIterator()
+                await iterator.next()
+                task.cancel()
+            }
+        }
+
+        #expect(throws: AuthenticationError.canceledByApp) { try result.get() }
         #expect(context.isInvalidated)
     }
 
@@ -414,11 +417,9 @@ struct BiometricAuthenticatorTests {
     }
 
     /// Returns an authenticator that uses `context` and the built-in English messages.
-    /// Pass a separate `tracker` to tests that leave an evaluation in progress, so tests running in parallel can't invalidate it.
-    private func makeAuthenticator(_ context: MockLAContext, tracker: EvaluationTracker = EvaluationTracker()) -> BiometricAuthenticator {
+    private func makeAuthenticator(_ context: MockLAContext) -> BiometricAuthenticator {
         var authenticator = BiometricAuthenticator(bundle: .module, tableName: "MissingTable")
         authenticator.makeContext = { context }
-        authenticator.evaluationTracker = tracker
         return authenticator
     }
 }

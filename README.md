@@ -121,6 +121,25 @@ authenticator.authenticateWithBiometrics(reason: "") { result in
 }
 ```
 
+### Cancelling authentication
+- Cancelling the task that runs authentication dismisses the prompt and throws `AuthenticationError.canceledByApp`. The completion-handler variants return that task.
+- Cancel the previous authentication before starting a new one, so only one prompt is ever in progress. For example, don't start a new one each time the app becomes active while a prompt is still showing.
+
+```swift
+private var authenticationTask: Task<Void, Never>?
+
+func authenticate() {
+    authenticationTask?.cancel()
+    authenticationTask = Task {
+        do {
+            try await authenticator.authenticateWithBiometrics(reason: "")
+        } catch {
+            // handle error
+        }
+    }
+}
+```
+
 ### Can Authenticate with biometric
 
 - Alternatively you can check before authentication by following. This will check that if device supports Touch ID, Face ID or Optic ID authentication and your app can use that as of now.
