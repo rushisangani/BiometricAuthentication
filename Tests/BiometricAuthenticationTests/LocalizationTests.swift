@@ -12,7 +12,7 @@ struct LocalizationTests {
 
     @Test("Uses the authenticator's bundle and table")
     func usesCustomBundleAndTable() {
-        let authenticator = BiometricAuthenticator(bundle: .module, tableName: "TestStrings")
+        let authenticator = makeAuthenticator(tableName: "TestStrings")
 
         #expect(AuthenticationError.biometryNotAvailable.message(using: authenticator) == "Custom biometry not available")
         #expect(AuthenticationError.companionNotAvailable.message(using: authenticator) == "Custom companion not available")
@@ -20,15 +20,24 @@ struct LocalizationTests {
 
     @Test("Falls back to the default value for a missing key")
     func fallsBackForMissingKey() {
-        let authenticator = BiometricAuthenticator(bundle: .module, tableName: "TestStrings")
+        let authenticator = makeAuthenticator(tableName: "TestStrings")
 
         #expect(authenticator.localizedString(kNoFaceIdentityEnrolled) == kNoFaceIdentityEnrolled.defaultValue)
     }
 
     @Test("Falls back to the default value for a missing table")
     func fallsBackForMissingTable() {
-        let authenticator = BiometricAuthenticator(bundle: .module, tableName: "MissingTable")
+        let authenticator = makeAuthenticator(tableName: "MissingTable")
 
         #expect(AuthenticationError.biometryNotAvailable.message(using: authenticator) == kBiometryNotAvailableReason.defaultValue)
+    }
+
+    // MARK: - Helpers
+
+    /// Returns an authenticator on a device without biometry, so messages don't depend on the simulator's biometry type.
+    private func makeAuthenticator(tableName: String) -> BiometricAuthenticator {
+        var authenticator = BiometricAuthenticator(bundle: .module, tableName: tableName)
+        authenticator.makeContext = { MockLAContext() }
+        return authenticator
     }
 }

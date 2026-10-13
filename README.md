@@ -198,6 +198,7 @@ do {
 | `faceid.authentication.reason` | Confirm your face to authenticate. |
 | `faceid.passcode.authentication.reason` | Face ID is locked now, because of too many failed attempts. Enter passcode to unlock Face ID. |
 | `faceid.set.passcode` | Please set device passcode to use Face ID for authentication. |
+| `faceid.not.available` | Face ID is not available. Please allow this app to use Face ID in Settings. |
 | `faceid.not.enrolled` | There is no face enrolled in the device. Please go to Device Settings -> Face ID & Passcode and enroll your face. |
 | `faceid.failed.reason` | Face ID does not recognize your face. Please try again with your enrolled face. |
 | `opticid.authentication.reason` | Confirm your eyes to authenticate. |

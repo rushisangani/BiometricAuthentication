@@ -41,6 +41,9 @@ public struct BiometricAuthenticator: Sendable {
     
     /// Creates the `LAContext` used for each check and evaluation. Replaced in tests.
     var makeContext: @Sendable () -> LAContext = { LAContext() }
+
+    /// Tracks the evaluation in progress so a new one invalidates it. Replaced in tests.
+    var evaluationTracker: EvaluationTracker = .shared
     
     /// Creates an authenticator that resolves its localized messages from the given bundle and strings table.
     /// - Parameters:
@@ -221,13 +224,57 @@ private extension BiometricAuthenticator {
     }
 
     /// Evaluates an `LAPolicy` using Swift Concurrency, mapping `LAError` into ``AuthenticationError``.
+    ///
+    /// Invalidates the evaluation still in progress, if any, which then fails with ``AuthenticationError/canceledByApp``.
+    /// Cancelling the calling task also invalidates `context`.
     func evaluate(policy: LAPolicy, with context: LAContext, reason: String) async throws {
-        let result: Result<Void, AuthenticationError> = await withCheckedContinuation { continuation in
-            context.evaluatePolicy(policy, localizedReason: reason) { success, error in
-                continuation.resume(returning: success ? .success(()) : .failure(AuthenticationError(error)))
+        evaluationTracker.begin(context)
+        defer { evaluationTracker.end(context) }
+
+        let result: Result<Void, AuthenticationError> = await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                context.evaluatePolicy(policy, localizedReason: reason) { success, error in
+                    continuation.resume(returning: success ? .success(()) : .failure(AuthenticationError(error)))
+                }
             }
+        } onCancel: {
+            context.invalidate()
         }
         try result.get()
+    }
+}
+
+// MARK: - EvaluationTracker
+
+/// Keeps the `LAContext` currently being evaluated, so starting a new evaluation invalidates a stale one
+/// instead of leaving it to deliver results after the next prompt has started.
+final class EvaluationTracker: @unchecked Sendable {
+
+    /// Shared by all authenticators, since the system shows only one authentication prompt at a time.
+    static let shared = EvaluationTracker()
+
+    private let lock = NSLock()
+    private var current: LAContext?
+
+    /// Makes `context` the current evaluation and invalidates the previous one, if it is still in progress.
+    func begin(_ context: LAContext) {
+        lock.lock()
+        let previous = current
+        current = context
+        lock.unlock()
+
+        if let previous, previous !== context {
+            previous.invalidate()
+        }
+    }
+
+    /// Clears `context` if it is still the current evaluation.
+    func end(_ context: LAContext) {
+        lock.lock()
+        defer { lock.unlock() }
+        if current === context {
+            current = nil
+        }
     }
 }
 

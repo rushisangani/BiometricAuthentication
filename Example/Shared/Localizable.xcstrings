@@ -53,6 +53,18 @@
         }
       }
     },
+    "faceid.not.available" : {
+      "comment" : "Shown when the device has Face ID but it can't be used, usually because the user denied the app's Face ID permission.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID is not available. Please allow this app to use Face ID in Settings."
+          }
+        }
+      }
+    },
     "faceid.not.enrolled" : {
       "comment" : "Shown when the device supports Face ID but no face is enrolled.",
       "extractionState" : "manual",

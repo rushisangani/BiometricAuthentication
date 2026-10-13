@@ -31,6 +31,9 @@ This project follows [Semantic Versioning](https://semver.org).
 ### Fixed
 - `allowableReuseDuration` is clamped to `0...LATouchIDAuthenticationMaximumAllowableReuseDuration` (5 minutes), matching what `LAContext` supports.
 - Passcode and authentication reasons now show the Face ID message on Face ID devices when biometry is locked out or not enrolled.
+- Starting a new authentication invalidates the one still in progress, which fails with `canceledByApp`, instead of leaving a stale `LAContext` that could loop or block retries ([#46](https://github.com/rushisangani/BiometricAuthentication/issues/46), [#45](https://github.com/rushisangani/BiometricAuthentication/issues/45)).
+- Cancelling the task that awaits `authenticateWithBiometrics` or `authenticateWithPasscode` now dismisses the prompt and throws `canceledByApp`.
+- `biometryNotAvailable` on a Face ID device, usually caused by denying the app's Face ID permission, now shows a Face ID message pointing to Settings (new key `faceid.not.available`) instead of saying the device has no biometry ([#40](https://github.com/rushisangani/BiometricAuthentication/issues/40)).
 
 ## [3.1]
 - Updated to Swift 5.0.

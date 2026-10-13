@@ -102,7 +102,8 @@ public enum AuthenticationError: Error, Sendable {
             return authenticator.localizedString(isFaceIDDevice ? kSetPasscodeToUseFaceID : kSetPasscodeToUseTouchID)
 
         case .biometryNotAvailable:
-            return authenticator.localizedString(kBiometryNotAvailableReason)
+            // On Face ID hardware this usually means the user denied the app's Face ID permission.
+            return authenticator.localizedString(isFaceIDDevice ? kFaceIdNotAvailableReason : kBiometryNotAvailableReason)
 
         case .companionNotAvailable:
             return authenticator.localizedString(kCompanionNotAvailableReason)

@@ -39,6 +39,7 @@ let kFaceIdPasscodeAuthenticationReason = LocalizedText(key: "faceid.passcode.au
 
 /// Error Messages Face ID
 let kSetPasscodeToUseFaceID = LocalizedText(key: "faceid.set.passcode", defaultValue: "Please set device passcode to use Face ID for authentication.")
+let kFaceIdNotAvailableReason = LocalizedText(key: "faceid.not.available", defaultValue: "Face ID is not available. Please allow this app to use Face ID in Settings.")
 let kNoFaceIdentityEnrolled = LocalizedText(key: "faceid.not.enrolled", defaultValue: "There is no face enrolled in the device. Please go to Device Settings -> Face ID & Passcode and enroll your face.")
 let kDefaultFaceIDAuthenticationFailedReason = LocalizedText(key: "faceid.failed.reason", defaultValue: "Face ID does not recognize your face. Please try again with your enrolled face.")
 
