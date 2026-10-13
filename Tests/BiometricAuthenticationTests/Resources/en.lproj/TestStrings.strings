@@ -1,0 +1,3 @@
+/* Overrides used by LocalizationTests to verify custom bundle and table lookup. */
+"biometry.not.available" = "Custom biometry not available";
+"companion.not.available" = "Custom companion not available";
