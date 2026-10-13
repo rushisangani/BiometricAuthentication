@@ -1,23 +1,25 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.9
 import PackageDescription
 
 let package = Package(
     name: "BiometricAuthentication",
+    defaultLocalization: "en",
     platforms: [
-        .iOS(.v12),
+        .iOS(.v15),
     ],
     products: [
-        .library(name: "BiometricAuthentication", targets: ["BiometricAuthentication"])
-    ],
-    dependencies: [
+        .library(name: "BiometricAuthentication", targets: ["BiometricAuthentication"]),
     ],
     targets: [
         .target(
             name: "BiometricAuthentication",
-            dependencies: [
-            ],
-            path: "BiometricAuthentication"
-        )
+            resources: [.copy("PrivacyInfo.xcprivacy")]
+        ),
+        .testTarget(
+            name: "BiometricAuthenticationTests",
+            dependencies: ["BiometricAuthentication"],
+            resources: [.process("Resources")]
+        ),
     ],
-    swiftLanguageVersions: [ .v5 ]
+    swiftLanguageVersions: [.v5]
 )
